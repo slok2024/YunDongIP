@@ -1,0 +1,20 @@
+YunDongIP 0.1.0 release verification
+====================================
+PASS  project version = 0.1.0
+PASS  no external Go modules in go.mod
+PASS  no github.com imports in source
+PASS  default listen host = 127.0.0.1
+PASS  browser auto-open flag present (default true)
+PASS  LAN opt-in host flag present
+PASS  headless browser opt-out flag present
+PASS  TCP probe count = 4
+PASS  loss cutoff = 0.60
+PASS  scan timeout = 1s
+PASS  scan batch = 50
+PASS  trace batch = 50
+PASS  trace workers = 64
+PASS  old scan helper names absent
+PASS  Windows amd64 build
+PASS  Linux amd64 build
+
+Release note: end users do not need Go; Go is required only when building from source.

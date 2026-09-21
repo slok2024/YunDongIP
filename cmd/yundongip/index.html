@@ -1,0 +1,1378 @@
+<!-- Copyright (c) 2026 zeruiouo-blip | SPDX-License-Identifier: GPL-3.0-only | YunDongIP -->
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="cockpit-white">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="yundongip-project" content="YunDongIP|0.1.0|YDI-PROVENANCE-0.1.0-6B8A4C2E">
+    <title>域动ip cloudflare优选 · 动态自愈皇位中枢</title>
+    <script>
+        (function() {
+            const valid = ['black-pink', 'kawaii-pink', 'cockpit-white'];
+            const storageKey = 'yudong_cockpit_theme';
+            const migrationKey = 'yudong_cockpit_theme_v2';
+            let s = localStorage.getItem(storageKey);
+            if (!localStorage.getItem(migrationKey)) {
+                s = 'cockpit-white';
+                localStorage.setItem(storageKey, s);
+                localStorage.setItem(migrationKey, '1');
+            }
+            if (!valid.includes(s)) s = 'cockpit-white';
+            document.documentElement.setAttribute('data-theme', s);
+        })();
+    </script>
+    <style>
+        :root[data-theme="black-pink"] {
+            --bg-body:#08090d; --panel-bg:rgba(16,18,26,0.60); --panel-sub:rgba(24,27,38,0.55);
+            --glass-border:rgba(255,255,255,0.08); --glass-border-focus:#ff2a70;
+            --glass-sheen:inset 0 1px 1px 0 rgba(255,255,255,0.12); --glass-shadow:0 10px 30px rgba(0,0,0,0.45);
+            --text-title:#ffffff; --text-main:#f1f5f9; --text-label:#94a3b8; --text-muted:#64748b;
+            --accent:#ff2a70; --accent-glow:rgba(255,42,112,0.25); --danger:#f43f5e; --success:#10b981; --warning:#f59e0b;
+            --card-feed:rgba(18,21,30,0.55); --card-feed-hover:rgba(28,32,46,0.78);
+            --scrollbar-thumb:rgba(255,42,112,0.65); --scrollbar-track:rgba(255,255,255,0.03);
+            --param-tag:#ff2a70; --input-bg:rgba(22,25,36,0.65); --input-color:#ffffff;
+            --mesh-line:rgba(255,42,112,0.12); --mesh-node:rgba(255,42,112,0.30); --trail-color:255,42,112;
+            --hop-bg:rgba(255,255,255,0.06); --hop-border:rgba(255,255,255,0.12);
+        }
+        :root[data-theme="kawaii-pink"] {
+            --bg-body:#fff0f5; --panel-bg:rgba(255,255,255,0.62); --panel-sub:rgba(255,243,247,0.55);
+            --glass-border:rgba(244,114,182,0.22); --glass-border-focus:#ec4899;
+            --glass-sheen:inset 0 1px 1.5px 0 rgba(255,255,255,0.85); --glass-shadow:0 10px 28px rgba(236,72,153,0.1);
+            --text-title:#3b0722; --text-main:#2b0c1e; --text-label:#70072b; --text-muted:#9d174d;
+            --accent:#ec4899; --accent-glow:rgba(236,72,153,0.25); --danger:#e11d48; --success:#059669; --warning:#d97706;
+            --card-feed:rgba(255,255,255,0.65); --card-feed-hover:rgba(253,242,248,0.85);
+            --scrollbar-thumb:rgba(236,72,153,0.65); --scrollbar-track:rgba(252,231,243,0.35);
+            --param-tag:#db2777; --input-bg:rgba(255,255,255,0.7); --input-color:#2b0c1e;
+            --mesh-line:rgba(236,72,153,0.15); --mesh-node:rgba(244,63,94,0.35); --trail-color:236,72,153;
+            --hop-bg:rgba(236,72,153,0.08); --hop-border:rgba(236,72,153,0.22);
+        }
+        :root[data-theme="cockpit-white"] {
+            --bg-body:#ffffff; --panel-bg:rgba(255,255,255,0.65); --panel-sub:rgba(248,250,252,0.58);
+            --glass-border:rgba(255,255,255,0.8); --glass-border-focus:#0f172a;
+            --glass-sheen:inset 0 1px 1.5px 0 rgba(255,255,255,0.95); --glass-shadow:0 10px 25px rgba(15,23,42,0.06);
+            --text-title:#0f172a; --text-main:#334155; --text-label:#475569; --text-muted:#64748b;
+            --accent:#0f172a; --accent-glow:rgba(15,23,42,0.15); --danger:#b91c1c; --success:#047857; --warning:#b45309;
+            --card-feed:rgba(255,255,255,0.68); --card-feed-hover:rgba(248,250,252,0.9);
+            --scrollbar-thumb:rgba(71,85,105,0.5); --scrollbar-track:rgba(226,232,240,0.35);
+            --param-tag:#0f172a; --input-bg:rgba(255,255,255,0.75); --input-color:#0f172a;
+            --mesh-line:rgba(71,85,105,0.12); --mesh-node:rgba(15,23,42,0.28); --trail-color:15,23,42;
+            --hop-bg:rgba(15,23,42,0.05); --hop-border:rgba(15,23,42,0.15);
+        }
+        * { box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei", sans-serif;
+            background-color: var(--bg-body); color: var(--text-main); margin: 0; padding: 8px 14px;
+            font-size: 14px; font-weight: 700; overflow-x: hidden; position: relative;
+        }
+        #fluid-mesh-canvas, #sparkle-trail-canvas {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; pointer-events: none; transition: opacity 0.3s;
+        }
+        #fluid-mesh-canvas { z-index: 0; }
+        #sparkle-trail-canvas { z-index: 9999; }
+        .canvas-paused { opacity: 0.05 !important; }
+        .cockpit-viewport { position: relative; z-index: 10; }
+        .liquid-glass-card {
+            background: var(--panel-bg); backdrop-filter: blur(20px) saturate(180%); -webkit-backdrop-filter: blur(20px) saturate(180%);
+            border: 1px solid var(--glass-border); box-shadow: var(--glass-shadow), var(--glass-sheen);
+        }
+        .scroll-chain {
+            scrollbar-width: thin; scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+            -webkit-overflow-scrolling: touch; touch-action: pan-x pan-y;
+        }
+        .scroll-chain::-webkit-scrollbar { width: 8px; height: 8px; }
+        .scroll-chain::-webkit-scrollbar-track { background: var(--scrollbar-track); border-radius: 4px; }
+        .scroll-chain::-webkit-scrollbar-thumb { background: var(--scrollbar-thumb); border-radius: 4px; box-shadow: 0 0 6px var(--accent-glow); }
+        select, input[type="text"], input[type="number"], input[type="password"] {
+            background-color: var(--input-bg) !important; color: var(--input-color) !important;
+            border: 1px solid var(--glass-border); padding: 7px 10px; border-radius: 6px; font-size: 13px; font-weight: 800; outline: none; width: 100%;
+        }
+        .cockpit-header {
+            border-radius: 10px; padding: 8px 16px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;
+        }
+        .header-brand { display: flex; align-items: center; gap: 10px; }
+        .brand-badge { background: var(--accent); color: #fff; padding: 4px 10px; border-radius: 6px; font-size: 13px; font-weight: 900; }
+        .brand-title-wrap h1 { margin: 0; font-size: 18px; font-weight: 900; color: var(--text-title); display: inline-block; }
+        .brand-title-wrap span { font-size: 12px; color: var(--text-muted); margin-left: 8px; }
+        .header-controls { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+        .btn-header-action { padding: 7px 14px; border-radius: 6px; font-size: 13px; font-weight: 900; cursor: pointer; border: none; }
+        .btn-header-start { background: var(--success); color: #fff; }
+        .btn-header-stop { background: var(--danger); color: #fff; }
+        .btn-header-throne { background: var(--accent); color: #fff; }
+        .theme-cluster { display: flex; background: var(--panel-sub); padding: 2px; border-radius: 6px; border: 1px solid var(--glass-border); gap: 2px; }
+        .theme-cluster button { padding: 4px 10px; border-radius: 4px; font-size: 12px; font-weight: 900; cursor: pointer; border: none; background: transparent; color: var(--text-muted); }
+        .theme-cluster button.active { background: var(--accent); color: #fff; }
+        .conn-badge { padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 800; display: inline-flex; align-items: center; gap: 6px; background: var(--panel-sub); border: 1px solid var(--glass-border); }
+        .kpi-ticker-strip {
+            border-radius: 10px 10px 0 0; padding: 8px 16px; display: grid; grid-template-columns: 62px minmax(170px,1.15fr) repeat(3,minmax(145px,1fr)) minmax(250px,auto); align-items: center; gap: 12px;
+        }
+        .kpi-circle-gauge {
+            width: 48px; height: 48px; border-radius: 50%; border: 3.5px solid var(--accent); display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 900; color: var(--text-title); background: var(--panel-sub);
+        }
+        .kpi-block { display: flex; flex-direction: column; min-width: 0; }
+        .kpi-actions { display:flex; align-items:center; justify-content:flex-end; gap:5px; flex-wrap:wrap; }
+        .kpi-actions .btn-card-op { white-space:nowrap; padding:5px 8px; }
+
+        .kpi-block-label { font-size: 11px; color: var(--text-label); font-weight: 800; margin-bottom: 2px; }
+        .kpi-block-val { font-size: 16px; font-weight: 900; color: var(--text-title); font-family: monospace; }
+        .kpi-block-sub { font-size: 11px; color: var(--text-muted); font-weight: 700; }
+        .thin-progress-line { height: 4px; background: var(--panel-sub); border-radius: 0 0 10px 10px; overflow: hidden; margin-bottom: 8px; border: 1px solid var(--glass-border); border-top: none; }
+        .thin-progress-fill { height: 100%; width: 0%; background: linear-gradient(90deg, #ff0055, #ffcc00, #00ff66, #00ccff, #ff0055); background-size: 200% 100%; transition: width 0.2s; }
+        .emperor-split-deck { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 6px; }
+        .throne-seat-card { border-radius: 10px; padding: 10px 14px; display: flex; flex-direction: column; justify-content: space-between; position: relative; }
+        .throne-seat-card.v4-seat { border-left: 4px solid var(--accent); }
+        .throne-seat-card.v6-seat { border-left: 4px solid #06b6d4; }
+        .throne-card-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; font-size: 12px; font-weight: 800; }
+        .throne-card-body { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+        .throne-domain-name { font-size: 15px; font-weight: 900; color: var(--text-title); font-family: monospace; cursor: pointer; border-bottom: 1.5px dashed var(--accent); }
+        .throne-ip-text { font-size: 15px; font-weight: 900; font-family: monospace; color: var(--success); cursor: pointer; }
+        .isp-badge-tag { background: var(--panel-sub); border: 1px solid var(--glass-border); color: var(--accent); padding: 1px 6px; border-radius: 4px; font-size: 11px; font-weight: 900; }
+        .throne-drawer-wrap { border-radius: 8px; padding: 5px 12px; margin-bottom: 8px; font-size: 12px; }
+        .throne-drawer-wrap summary { cursor: pointer; color: var(--accent); font-weight: 900; outline: none; display: flex; justify-content: space-between; align-items: center; }
+        .domain-strip-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        .domain-strip-table th { color: var(--text-muted); font-weight: 900; padding: 6px 8px; text-align: left; border-bottom: 1px solid var(--glass-border); }
+        .domain-strip-table td { padding: 7px 8px; border-bottom: 1px dashed var(--glass-border); color: var(--text-title); font-weight: 800; white-space: nowrap; }
+        .emperor-profile-banner { border-left: 4px solid var(--accent); border-radius: 10px; padding: 8px 14px; margin-bottom: 8px; }
+        .profile-metrics-line { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 6px 12px; font-size: 13px; font-weight: 800; margin-bottom: 5px; }
+        .trace-hops-rack { background: var(--panel-sub); border: 1px solid var(--glass-border); border-radius: 6px; padding: 6px 10px; display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; }
+        .hop-pill { padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 900; display: inline-flex; align-items: center; color:#fff; }
+        .hop-0{background:#059669;} .hop-1{background:#0284c7;} .hop-2{background:#7c3aed;} .hop-3{background:#d97706;} .hop-4{background:#ff2a70;}
+        .cockpit-grid-stage {
+            display: grid; grid-template-columns: 330px minmax(0, 1fr) 330px; gap: 10px; align-items: stretch;
+            height: calc(100vh - 365px); min-height: 520px; max-height: calc(100vh - 365px); overflow: hidden !important; margin-bottom: 4px;
+        }
+        .side-column-pack { display: flex; flex-direction: column; gap: 8px; height: 100%; max-height: 100%; min-height: 0 !important; overflow: hidden !important; }
+        .panel-box { border-radius: 10px; padding: 10px 12px; display: flex; flex-direction: column; }
+        .box-caption { font-size: 13px; font-weight: 900; color: var(--text-title); margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--glass-border); padding-bottom: 4px; flex: 0 0 auto; }
+        .param-badge { background: var(--param-tag); color: #fff; padding: 1px 4px; border-radius: 3px; font-size: 9px; font-weight: 900; margin-left: 4px; }
+        .form-unit { display: flex; flex-direction: column; margin-bottom: 6px; }
+        .form-unit label { font-size: 11px; font-weight: 900; color: var(--text-label); margin-bottom: 3px; display: flex; justify-content: space-between; }
+        .port-pills-row { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 3px; }
+        .port-pill { background: var(--panel-sub); border: 1px solid var(--glass-border); color: var(--text-label); padding: 2px 7px; border-radius: 4px; font-size: 11px; font-weight: 900; cursor: pointer; }
+        .port-pill.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+        .scrollable-feed-column { display: flex; flex-direction: column; gap: 8px; height: 100%; max-height: 100%; min-height: 0 !important; overflow: hidden !important; }
+        .feed-switch-bar { border-radius: 8px; padding: 3px; display: flex; gap: 4px; flex: 0 0 auto; }
+        .feed-tab-btn { flex: 1; padding: 7px 8px; border-radius: 6px; font-size: 12px; font-weight: 900; cursor: pointer; border: none; background: transparent; color: var(--text-muted); text-align: center; }
+        .feed-tab-btn.active { background: var(--panel-sub); color: var(--text-title); border: 1px solid var(--glass-border); }
+        .stream-scroll-stage { flex: 1; min-height: 0 !important; height: 100%; overflow: auto !important; display: flex; flex-direction: column; gap: 6px; border-radius: 10px; padding: 8px; }
+        .stream-card-row { background: var(--card-feed); border: 1px solid var(--glass-border); border-radius: 8px; padding: 8px 12px; display: grid; grid-template-columns: 42px minmax(200px, 1fr) 140px 100px; align-items: center; gap: 8px; flex: 0 0 auto; min-width: 100%; }
+        .card-rank-tag { font-size: 14px; font-weight: 900; color: var(--text-muted); text-align: center; }
+        .card-main-meta { display: flex; flex-direction: column; gap: 2px; }
+        .card-ip-line { display: flex; align-items: center; gap: 8px; }
+        .card-ip-addr { font-size: 14px; font-weight: 900; font-family: monospace; color: var(--text-title); cursor: pointer; white-space: nowrap; }
+        .card-colo-pill { background: var(--panel-sub); border: 1px solid var(--glass-border); color: var(--accent); padding: 1px 6px; border-radius: 4px; font-size: 11px; font-weight: 900; }
+        .card-perf-cluster { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; }
+        .card-speed-badge { font-size: 14px; font-weight: 900; color: var(--success); font-family: monospace; }
+        .btn-card-op { background: var(--panel-sub); border: 1px solid var(--glass-border); color: var(--text-title); padding: 4px 8px; border-radius: 5px; font-size: 11px; font-weight: 800; cursor: pointer; }
+        .tri-chamber-container { display: flex; flex-direction: column; gap: 8px; height: 100%; min-height: 0 !important; overflow: hidden !important; }
+        .split-chamber-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; flex: 1; min-height: 0 !important; overflow: hidden !important; }
+        .pool-chamber-section { background: var(--panel-sub); border: 1px solid var(--glass-border); border-radius: 8px; padding: 8px 10px; min-height: 0 !important; display: flex; flex-direction: column; overflow: hidden !important; }
+        .chamber-title { font-size: 12px; font-weight: 900; color: var(--text-title); display: flex; justify-content: space-between; align-items: center; padding-bottom: 4px; flex: 0 0 auto; }
+        .chamber-scroll-area { flex: 1; min-height: 0 !important; overflow: auto !important; display: flex; flex-direction: column; gap: 4px; padding-right: 4px; }
+        .log-terminal-mini { flex: 1; min-height: 0 !important; overflow: auto !important; background: rgba(9,13,22,0.65); color: #3fb950; padding: 8px 12px; border-radius: 6px; font-family: monospace; font-size: 12px; line-height: 1.4; border: 1px solid var(--glass-border); }
+        @media (max-width: 1200px) {
+            .cockpit-grid-stage { grid-template-columns: 1fr; height: auto; max-height: none; overflow: visible !important; }
+            .emperor-split-deck, .split-chamber-row { grid-template-columns: 1fr; }
+            .kpi-ticker-strip { grid-template-columns: 58px 1fr 1fr; }
+            .kpi-actions { grid-column: 1 / -1; justify-content:flex-start; }
+            .scrollable-feed-column { height: 600px; max-height: 600px; }
+        }
+    </style>
+</head>
+<body>
+    <canvas id="fluid-mesh-canvas"></canvas>
+    <canvas id="sparkle-trail-canvas"></canvas>
+    <div class="cockpit-viewport">
+        <!-- 顶栏 -->
+        <div class="cockpit-header liquid-glass-card">
+            <div class="header-brand">
+                <span class="brand-badge">DynThrone</span>
+                <div class="brand-title-wrap">
+                    <h1>域动ip cloudflare优选</h1>
+                    <span id="headerModeTag">全自动自适应昼夜争霸中枢</span>
+                </div>
+            </div>
+            <div class="header-controls">
+                <div class="conn-badge">
+                    <span id="wsStatusDot" style="color:var(--warning);">●</span>
+                    <span id="wsStatusText">连接核心中...</span>
+                </div>
+                <button onclick="startUnifiedTask()" id="btnStart" class="btn-header-action btn-header-start">⚡ 启炉扫描</button>
+                <button onclick="stopUnifiedTask()" id="btnStop" class="btn-header-action btn-header-stop" style="display:none;">⭕ 终止扫描</button>
+                <button onclick="togglePipelinePower()" id="btnThronePower" class="btn-header-action btn-header-throne">👑 开启皇位争夺</button>
+                <button onclick="clearLowSpeedBlacklist()" class="btn-header-action" style="background:#f59e0b; color:#000; font-weight:900;" title="⚠️ 手动释放全部熔断黑名单；扫描丢包≥50%与R2失败节点都在此列表">⚠️ 释放熔断黑名单 (<span id="blacklistCount">0</span>)</button>
+                <button onclick="clearAllData()" class="btn-header-action" style="background:var(--panel-sub); border:1px solid var(--glass-border); color:var(--danger);">🧹 一键全部清除</button>
+                <div class="theme-cluster">
+                    <button class="active" onclick="switchCockpitTheme('cockpit-white')">🤍 纯净白</button>
+                    <button onclick="switchCockpitTheme('black-pink')">🖤💗 黑粉</button>
+                    <button onclick="switchCockpitTheme('kawaii-pink')">🎀 甜心粉</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- KPI 栏 -->
+        <div class="kpi-ticker-strip liquid-glass-card">
+            <div class="kpi-circle-gauge" id="progressCircle">0%</div>
+            <div class="kpi-block"><div class="kpi-block-label">实时探测进度</div><div class="kpi-block-val" id="kpi_progress_text">0 / 716,000</div><div class="kpi-block-sub">全量 Anycast 深度采样</div></div>
+            <div class="kpi-block"><div class="kpi-block-label">合格候选节点</div><div class="kpi-block-val" id="kpi_scan_count" style="color:var(--success);">0</div><div class="kpi-block-sub">扫描累计合格</div></div>
+            <div class="kpi-block"><div class="kpi-block-label">🧪 R2 总积蓄</div><div class="kpi-block-val" id="kpi_r2_stock" style="color:var(--warning);">0</div><div class="kpi-block-sub" id="kpi_r2_stock_sub">实时剩余候测节点</div></div>
+            <div class="kpi-block" style="text-align:right;"><div class="kpi-block-label">待命皇位储备</div><div class="kpi-block-val" id="kpi_pool_count">0 席</div><div class="kpi-block-sub">R4 待命双仓 (100席/轨)</div></div>
+            <div class="kpi-actions">
+                <button class="btn-card-op" onclick="resetAdmissionBenchmark('A')" title="只刷新 IPv4 赛道的 R3.5 上位门槛；刷新后立即解除该赛道当前门槛限制">🔄 IPv4 门槛</button>
+                <button class="btn-card-op" onclick="resetAdmissionBenchmark('AAAA')" title="只刷新 IPv6 赛道的 R3.5 上位门槛；刷新后立即解除该赛道当前门槛限制">🔄 IPv6 门槛</button>
+                <button class="btn-card-op" onclick="syncNow()" style="background:var(--accent); color:#fff; border-color:var(--accent);">⚡ 即刻登基</button>
+            </div>
+        </div>
+        <div class="thin-progress-line"><div class="thin-progress-fill" id="thinProgressBar"></div></div>
+
+        <!-- 皇位双座驾 -->
+        <div class="emperor-split-deck">
+            <div class="throne-seat-card v4-seat liquid-glass-card" id="v4ThroneCard">
+                <div class="throne-card-head"><span style="color:var(--accent);">👑 IPv4 主皇位赛道 (A 记录专线)</span><span id="v4_cooldown_badge" style="color:var(--success);">🟢 稳坐皇位</span></div>
+                <div class="throne-card-body">
+                    <div><span class="throne-domain-name" id="v4_card_domain" onclick="copyToClipboard(this.innerText, this)">未绑定 IPv4 赛道</span><div style="font-size:11px; color:var(--text-muted); margin-top:3px;" id="v4_card_mode">模式: 自动</div><div style="font-size:10px; color:var(--text-muted); margin-top:2px;" id="v4_card_time">防抖: -- · 稳坐: --</div></div>
+                    <div style="text-align:right;"><div class="throne-ip-text" id="v4_card_ip" onclick="inspectNode(this.innerText); copyToClipboard(this.innerText, this)">--.---.---.---</div><div style="font-size:12px; color:var(--text-label); margin-top:2px;" id="v4_card_meta"><span class="isp-badge-tag" id="v4_card_isp">骨干网络</span> <span style="color:var(--accent); font-weight:900;" id="v4_card_colo">CF</span> · <span style="color:var(--success); font-weight:900;" id="v4_card_spd">-- MB/s</span></div></div>
+                    <div style="display:flex; flex-direction:column; gap:4px; align-items:flex-end;"><div style="display:flex; gap:4px; flex-wrap:wrap; justify-content:flex-end;"><button class="btn-card-op" id="v4_btn_profile" style="color:var(--accent);">画像</button><button class="btn-card-op" id="v4_btn_pin">指定</button><button class="btn-card-op" id="v4_btn_mode">切到手动</button></div><div style="display:flex; gap:4px; flex-wrap:wrap; justify-content:flex-end;"><button class="btn-card-op" style="color:var(--danger);" id="v4_btn_del">删</button></div></div>
+                </div>
+            </div>
+            <div class="throne-seat-card v6-seat liquid-glass-card" id="v6ThroneCard">
+                <div class="throne-card-head"><span style="color:#06b6d4;">🚀 IPv6 主皇位赛道 (AAAA 记录专线)</span><span id="v6_cooldown_badge" style="color:var(--success);">🟢 稳坐皇位</span></div>
+                <div class="throne-card-body">
+                    <div><span class="throne-domain-name" id="v6_card_domain" onclick="copyToClipboard(this.innerText, this)">未绑定 IPv6 赛道</span><div style="font-size:11px; color:var(--text-muted); margin-top:3px;" id="v6_card_mode">模式: 自动</div><div style="font-size:10px; color:var(--text-muted); margin-top:2px;" id="v6_card_time">防抖: -- · 稳坐: --</div></div>
+                    <div style="text-align:right;"><div class="throne-ip-text" id="v6_card_ip" onclick="inspectNode(this.innerText); copyToClipboard(this.innerText, this)">--::--</div><div style="font-size:12px; color:var(--text-label); margin-top:2px;" id="v6_card_meta"><span class="isp-badge-tag" id="v6_card_isp">骨干网络</span> <span style="color:var(--accent); font-weight:900;" id="v6_card_colo">CF</span> · <span style="color:var(--success); font-weight:900;" id="v6_card_spd">-- MB/s</span></div></div>
+                    <div style="display:flex; flex-direction:column; gap:4px; align-items:flex-end;"><div style="display:flex; gap:4px; flex-wrap:wrap; justify-content:flex-end;"><button class="btn-card-op" id="v6_btn_profile" style="color:#06b6d4;">画像</button><button class="btn-card-op" id="v6_btn_pin">指定</button><button class="btn-card-op" id="v6_btn_mode">切到手动</button></div><div style="display:flex; gap:4px; flex-wrap:wrap; justify-content:flex-end;"><button class="btn-card-op" style="color:var(--danger);" id="v6_btn_del">删</button></div></div>
+                </div>
+            </div>
+        </div>
+
+        <details class="throne-drawer-wrap liquid-glass-card">
+            <summary><span>▼ 点击展开/收起：查看所有配置子域赛道明细 (<span id="extraDomainCount">0</span>)</span><span style="font-size:11px; color:var(--text-muted);">门槛按 IPv4 / IPv6 赛道共享；点击 IP 或【画像】可定格查看数字身份证</span></summary>
+            <div id="domainDrawerScrollWrap" class="scroll-chain" style="overflow-x:auto; margin-top:6px;">
+                <table class="domain-strip-table">
+                    <thead><tr><th>顺位</th><th>子域名</th><th>网络</th><th>模式</th><th>当前上位 IP</th><th>承载网络与落地机房</th><th>防抖 / 在线稳坐</th><th>赛马控制</th><th>操作</th></tr></thead>
+                    <tbody id="domainDrawerTableBody"><tr><td colspan="9" style="text-align:center; padding:6px; color:var(--text-muted);">暂无配置</td></tr></tbody>
+                </table>
+            </div>
+        </details>
+
+        <!-- 全息数字身份证 -->
+        <div class="emperor-profile-banner liquid-glass-card">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+                <div><strong style="font-size:14px;" id="cardTitle">👑 在位真皇全息数字身份证</strong><span id="cardDomainStatus" style="font-size:10px; color:var(--text-muted); margin-left:8px;">--</span><span id="cardRoleBadge" style="background:var(--success); color:#fff; padding:2px 8px; border-radius:4px; font-size:10px; margin-left:6px;">巡航模式</span><span id="cardLockBadge" style="background:var(--warning); color:#000; padding:2px 8px; border-radius:4px; font-size:10px; display:none; margin-left:4px;">🛡️ 免死金牌</span></div>
+                <div style="display:flex; gap:5px; align-items:center;">
+                    <span style="font-size:11px; color:var(--text-muted);" id="cardTimerTip">[多域轮播中 (15秒/域) · 点击节点定格5分钟]</span>
+                    <button class="btn-card-op" onclick="triggerCardLock()">授予免死</button><button class="btn-card-op" onclick="triggerCardDemote()">打回第3轮</button><button class="btn-card-op" style="color:var(--danger);" onclick="triggerCardDelete()">物理处决</button>
+                </div>
+            </div>
+            <div class="profile-metrics-line">
+                <div>节点 IP: <span id="p_ip" style="color:var(--accent); font-family:monospace; cursor:pointer;" onclick="copyToClipboard(this.innerText, this)">--</span></div>
+                <div>实测极速: <span id="p_speed" style="color:var(--success); font-weight:900;">--</span></div>
+                <div>握手延迟: <span id="p_latency">--</span></div>
+                <div>落地机房: <span id="p_colo" style="font-weight:900;">--</span></div>
+                <div>承载网络: <span id="p_isp" style="color:var(--accent); font-weight:900;">--</span></div>
+                <div>建档时间: <span id="p_born">--</span></div>
+            </div>
+            <div class="trace-hops-rack" id="p_path_steps">
+                <span class="hop-pill hop-0">🏠 杭州 (本地宽带)</span>➔<span class="hop-pill hop-1">🌐 省级骨干核心网</span>➔<span class="hop-pill hop-2">🚢 国际出海关口局</span>➔<span class="hop-pill hop-3">🌊 亚太环形海底光缆</span>➔<span class="hop-pill hop-4">🏁 Cloudflare 香港机房 (HKG)</span>
+            </div>
+        </div>
+
+        <!-- 主体三栏布局 -->
+        <div class="cockpit-grid-stage">
+            <!-- 左侧控制翼 -->
+            <div class="side-column-pack">
+                <div class="panel-box liquid-glass-card" style="flex:0 0 auto;">
+                    <div class="box-caption"><span>📡 探测参数矩阵</span><button class="btn-card-op" onclick="downloadScanResults()">📥 CSV导出</button></div>
+                    <div class="form-unit">
+                        <label><span>网络协议与握手探测 <span class="param-badge">[可调/单选]</span></span></label>
+                        <div style="display:flex; justify-content:space-between; align-items:center; background:var(--panel-sub); padding:4px 8px; border-radius:6px; border:1px solid var(--glass-border); margin-bottom:4px;">
+                            <div style="display:flex; gap:8px;"><label style="margin:0;"><input type="checkbox" id="chk_v4" checked> IPv4</label><label style="margin:0;"><input type="checkbox" id="chk_v6" checked> IPv6</label></div>
+                        </div>
+                        <div class="port-pills-row">
+                            <span class="port-pill active" id="mode_tcp" onclick="setProbeMode('tcp')">⚡ TCPing 极速握手</span>
+                            <span class="port-pill" id="mode_http" onclick="setProbeMode('http')">🌐 HTTPing（后置精测）</span>
+                            <span class="port-pill" id="mode_both" onclick="setProbeMode('both')">⚔️ TCP+HTTP（后置精测）</span>
+                        </div>
+                    </div>
+
+                    <!-- 完整全系端口列表原样恢复 -->
+                    <div class="form-unit">
+                        <label><span>测试端口 <span class="param-badge">[多选/自定义]</span></span><span style="color:var(--accent); cursor:pointer;" onclick="resetPortTo443()">重置443</span></label>
+                        <input type="text" id="testPort" value="443" onchange="syncPortBadgeStyles()">
+                        <div class="port-pills-row">
+                            <span class="port-pill" onclick="setPortSeries('443')">443全系</span>
+                            <span class="port-pill" onclick="setPortSeries('80')">80全系</span>
+                            <span class="port-pill active" id="pb_443" onclick="togglePortBadge('443')">443</span>
+                            <span class="port-pill" id="pb_80" onclick="togglePortBadge('80')">80</span>
+                            <span class="port-pill" id="pb_8443" onclick="togglePortBadge('8443')">8443</span>
+                            <span class="port-pill" id="pb_2053" onclick="togglePortBadge('2053')">2053</span>
+                            <span class="port-pill" id="pb_2083" onclick="togglePortBadge('2083')">2083</span>
+                            <span class="port-pill" id="pb_2087" onclick="togglePortBadge('2087')">2087</span>
+                            <span class="port-pill" id="pb_2096" onclick="togglePortBadge('2096')">2096</span>
+                        </div>
+                    </div>
+
+                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:6px; margin-bottom:4px;">
+                        <div class="form-unit" style="margin:0;"><label><span>合格延迟(ms)</span></label><input type="number" id="testDelay" value="500"></div>
+                        <div class="form-unit" style="margin:0;"><label><span>并发线程</span></label><input type="number" id="scanThreads" min="1" max="1000" value="200"></div>
+                    </div>
+
+                    <!-- 四大洲完整地区列表原样恢复 -->
+                    <div class="form-unit" style="margin-bottom:4px;">
+                        <label><span>扫描阶段地区筛选（CF Trace，留空=全球）</span><span style="color:var(--accent); cursor:pointer;" onclick="clearColos()">清空</span></label>
+                        <input type="text" id="allowedColos" value="" placeholder="扫描阶段直接按 CF Trace 识别并筛选，例如 SJC, LAX">
+                        <div style="font-size:9px; color:var(--text-muted); margin-top:2px;">扫描流程：TCP×4 粗筛 → CF Trace 识别 Colo/地区 → 按这里的地区立即过滤 → 合格结果进入扫描榜/精测榜。</div>
+                        <div style="margin-top:3px; font-size:10px; line-height:1.5;">
+                            <div style="color:var(--text-title); font-weight:800;">🌏 亚太核心:</div>
+                            <div class="port-pills-row">
+                                <span class="port-pill" onclick="appendColo('HKG')">+香港</span>
+                                <span class="port-pill" onclick="appendColo('TPE')">+台北</span>
+                                <span class="port-pill" onclick="appendColo('NRT')">+东京</span>
+                                <span class="port-pill" onclick="appendColo('KIX')">+大阪</span>
+                                <span class="port-pill" onclick="appendColo('ICN')">+首尔</span>
+                                <span class="port-pill" onclick="appendColo('SIN')">+新加坡</span>
+                                <span class="port-pill" onclick="appendColo('BKK')">+曼谷</span>
+                            </div>
+                            <div style="color:var(--text-title); font-weight:800; margin-top:2px;">🗽 北美精选:</div>
+                            <div class="port-pills-row">
+                                <span class="port-pill" onclick="appendColo('SJC')">+圣何塞</span>
+                                <span class="port-pill" onclick="appendColo('LAX')">+洛杉矶</span>
+                                <span class="port-pill" onclick="appendColo('SEA')">+西雅图</span>
+                                <span class="port-pill" onclick="appendColo('SFO')">+旧金山</span>
+                                <span class="port-pill" onclick="appendColo('ORD')">+芝加哥</span>
+                            </div>
+                            <div style="color:var(--text-title); font-weight:800; margin-top:2px;">🏰 欧洲/其它:</div>
+                            <div class="port-pills-row">
+                                <span class="port-pill" onclick="appendColo('FRA')">+法兰克福</span>
+                                <span class="port-pill" onclick="appendColo('LHR')">+伦敦</span>
+                                <span class="port-pill" onclick="appendColo('AMS')">+阿姆斯特丹</span>
+                                <span class="port-pill" onclick="appendColo('SYD')">+悉尼</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-unit" style="margin-bottom:0;">
+                        <label><span>采样规模深度</span></label>
+                        <select id="param_subnet">
+                            <option value="no" selected>全量完整网段：每轮120/段（每轮重新抽样）</option>
+                            <option value="yes">/24 子网精简：每轮18/段（旧版）</option>
+                            <option value="rotate2">全量2等分轮换：每轮60/段（下一轮换另一半）</option>
+                            <option value="rotate3">全量3等分轮换：每轮40/段（三轮覆盖一次）</option>
+                            <option value="rotate4">全量4等分轮换：每轮30/段（四轮覆盖一次）</option>
+                            <option value="rotate5">全量5等分轮换：每轮24/段（五轮覆盖一次）</option>
+                        </select>
+                    </div>
+                </div>
+                <!-- 禁锢冷宫 -->
+                <div class="panel-box liquid-glass-card" style="flex:1; min-height:0; overflow:hidden;">
+                    <div class="box-caption"><span>❄️ 禁锢冷宫 (<span id="coldCountLabel">0</span> 席)</span><span style="font-size:10px; color:var(--text-muted);">5次失败熔断30分钟</span></div>
+                    <div id="coldPoolList" class="scroll-chain" style="flex:1; min-height:0; overflow:auto; font-size:12px;"><div style="text-align:center; padding:16px 0; color:var(--text-muted);">冷宫空无一人</div></div>
+                </div>
+            </div>
+
+            <!-- 中间 4 大选项卡主舞台 -->
+            <div class="scrollable-feed-column">
+                <div class="feed-switch-bar liquid-glass-card">
+                    <button class="feed-tab-btn active" id="tab_btn_feed_scan" onclick="switchStageFeed('scan')">🏷 探测流 (<span id="feedScanCount">0</span>)</button>
+                    <button class="feed-tab-btn" id="tab_btn_feed_test" onclick="switchStageFeed('test')">📊 精测榜 (<span id="feedTestCount">0</span>)</button>
+                    <button class="feed-tab-btn" id="tab_btn_feed_pool" onclick="switchStageFeed('pool')">👑 淘汰赛 (R4/R3/R2)</button>
+                    <button class="feed-tab-btn" id="tab_btn_feed_vault" onclick="switchStageFeed('vault')">🏛️ 昼夜封存与退役库</button>
+                </div>
+                <div class="stream-scroll-stage scroll-chain liquid-glass-card" id="mainStreamStage">
+                    <div style="text-align:center; padding:40px 0; color:var(--text-muted);">✦ 阵列已就绪，点击顶部【⚡ 启炉扫描】开启全量探测</div>
+                </div>
+            </div>
+
+            <!-- 右侧管控翼 -->
+            <div class="side-column-pack">
+                <div class="panel-box liquid-glass-card" style="flex:0 0 auto;">
+                    <div class="box-caption"><span>👑 皇权凭证与子域开辟</span><button class="btn-card-op" onclick="fetchDomains()">🔍 拉取根域</button></div>
+                    <div class="form-unit"><label><span>API Token</span></label><input type="password" id="cf_token" placeholder="Zone.DNS 编辑权限 Token" onchange="fetchDomains()"></div>
+                    <div class="form-unit"><label><span>选择根域名</span></label><select id="cf_zone_select"><option value="">填入 Token 后自动拉取</option></select></div>
+                    <div class="form-unit" style="margin-bottom:0;"><label><span>开辟争霸子域</span></label>
+                        <div style="display:flex; gap:4px;"><input type="text" id="new_sub_input" placeholder="前缀如 cf4"><select id="new_sub_type" style="width:85px;"><option value="A">IPv4</option><option value="AAAA">IPv6</option></select><button class="btn-card-op" onclick="addNewSubdomain()" style="background:var(--success); color:#fff; border:none;">开辟</button></div>
+                    </div>
+                </div>
+                <!-- 历史退役功勋阁 -->
+                <div class="panel-box liquid-glass-card" style="flex:1.2; min-height:0; overflow:hidden;">
+                    <div class="box-caption"><span id="retiredTitleBadge">📦 当前时段退役阁</span><button class="btn-card-op" onclick="clearRetiredAll()" style="color:var(--danger);">清空</button></div>
+                    <div id="retiredPoolList" class="scroll-chain" style="flex:1; min-height:0; overflow:auto; font-size:12px;"><div style="text-align:center; padding:14px 0; color:var(--text-muted);">暂无退役功勋</div></div>
+                </div>
+                <!-- 终端日志 -->
+                <div class="panel-box liquid-glass-card" style="flex:0.8; min-height:0; overflow:hidden;">
+                    <div class="box-caption"><span>司南终端日志</span></div>
+                    <div class="log-terminal-mini scroll-chain" id="logBox"><div>[系统] 等待启炉操作...</div></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 交互与全要素双向滑轨脚本 (100% 完整闭合) -->
+    <script>
+        let ws, scanResultsCount=0, testResultsCount=0, currentFeedMode='scan', cachedPipeData=null, scanData=[], testData=[], dcList=[], inspectedIP=null, isTaskActive=false;
+        let scanBuffer=[], flushTimer=null, stopCountdownTimer=null, currentProbeMode='tcp';
+        let rankDeferredTimer=null, rankDeferredDueAt=0, rankStageReady=false;
+        const RANK_DEFER_MS=30000;
+        let wsConnecting=false, wsReady=false, wsReconnectTimer=null;
+        let wsPendingMessages=[];
+        const WS_RECONNECT_MS = 3000;
+        let inspectUnlockTimer=null, lastManualInspectTime=0, domainCarouselTick=0, domainCarouselIdx=0;
+        const MANUAL_LOCK_MS = 5 * 60 * 1000;
+
+        function setProbeMode(m) {
+            if (checkScanningLock()) return;
+            currentProbeMode = m;
+            ['tcp','http','both'].forEach(x => document.getElementById('mode_' + x).classList.toggle('active', m === x));
+        }
+
+        function getMethodBadgeHtml(method) {
+            if (method === 'HTTPing') return '<span style="color:#06b6d4;">🌐 HTTP 响应</span>';
+            if (method === 'TCP+HTTP') return '<span style="color:#a855f7;">⚔️ 综合测算</span>';
+            return '<span style="color:var(--text-label);">⚡ TCP 握手</span>';
+        }
+
+        function updateConnStatus(status, text) {
+            const dot = document.getElementById('wsStatusDot'), txt = document.getElementById('wsStatusText');
+            if (!dot || !txt) return;
+            dot.style.color = status==='connected' ? '#10b981' : (status==='closed' || status==='error' ? '#ef4444' : '#f59e0b');
+            txt.textContent = status==='connected' ? '阵列连接成功' : (status==='error' ? (text || '连接错误') : (status==='closed' ? '连接断开·重试' : (text||'连接中...')));
+        }
+
+        function isWSOpen() {
+            return !!ws && ws.readyState === WebSocket.OPEN;
+        }
+
+        function safeSend(payload, label='操作', queueWhenOffline=false) {
+            if (isWSOpen()) {
+                try {
+                    ws.send(JSON.stringify(payload));
+                    return true;
+                } catch (e) {
+                    wsReady = false;
+                    log(`❌ ${label}发送失败: ${e.message || e}`);
+                    return false;
+                }
+            }
+
+            if (queueWhenOffline) {
+                wsPendingMessages = [payload];
+                log(`⏳ ${label}暂未发送：核心连接尚未恢复，已排队，连接恢复后自动执行。`);
+            } else {
+                log(`⚠️ ${label}暂未发送：核心 WebSocket 未连接成功，请等待右上角显示【阵列连接成功】。`);
+            }
+            return false;
+        }
+
+        function flushPendingWSMessages() {
+            if (!isWSOpen() || wsPendingMessages.length === 0) return;
+            const pending = wsPendingMessages.slice();
+            wsPendingMessages = [];
+            pending.forEach(msg => {
+                try { ws.send(JSON.stringify(msg)); } catch (e) {
+                    wsPendingMessages.push(msg);
+                    log(`❌ 排队消息发送失败: ${e.message || e}`);
+                }
+            });
+        }
+
+        function switchCockpitTheme(theme) {
+            document.documentElement.setAttribute('data-theme', theme);
+            localStorage.setItem('yudong_cockpit_theme', theme);
+            document.querySelectorAll('.theme-cluster button').forEach(b => b.classList.toggle('active', b.getAttribute('onclick').includes(theme)));
+        }
+
+        function checkScanningLock() {
+            if (isTaskActive) { alert("⚠️ 正在全网扫描中，请点击【终止扫描】后再操作其他按键！"); return true; }
+            return false;
+        }
+
+        function connect() {
+            if (wsConnecting || isWSOpen()) return;
+            if (wsReconnectTimer) { clearTimeout(wsReconnectTimer); wsReconnectTimer = null; }
+
+            wsConnecting = true;
+            wsReady = false;
+            updateConnStatus('connecting', '正在建立核心连接...');
+
+            // 页面 HTTP → ws；页面 HTTPS → wss，避免 HTTPS 页面被浏览器拦截混合内容。
+            const wsScheme = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
+            const wsUrl = wsScheme + window.location.host + '/ws';
+            log(`🔌 正在连接调度核心: ${wsUrl}`);
+
+            try {
+                ws = new WebSocket(wsUrl);
+            } catch (e) {
+                wsConnecting = false;
+                wsReady = false;
+                updateConnStatus('error', 'WebSocket创建失败');
+                log(`❌ WebSocket 创建失败: ${e.message || e}`);
+                wsReconnectTimer = setTimeout(connect, WS_RECONNECT_MS);
+                return;
+            }
+
+            ws.onopen = () => {
+                wsConnecting = false;
+                wsReady = true;
+                updateConnStatus('connected');
+                log("✅ 已连接调度核心");
+                flushPendingWSMessages();
+            };
+
+            ws.onerror = (event) => {
+                wsReady = false;
+                updateConnStatus('error', 'WebSocket 网络错误');
+                log("❌ WebSocket 网络错误：请检查当前网页协议、反向代理是否允许 WebSocket Upgrade，以及后端 /ws 是否可达。");
+            };
+
+            ws.onclose = (event) => {
+                wsConnecting = false;
+                wsReady = false;
+                updateConnStatus('closed');
+                log(`🔌 WebSocket 已断开 (code=${event.code}, reason=${event.reason || '无'})，${WS_RECONNECT_MS/1000} 秒后重试`);
+                if (wsReconnectTimer) clearTimeout(wsReconnectTimer);
+                wsReconnectTimer = setTimeout(connect, WS_RECONNECT_MS);
+            };
+
+            ws.onmessage = (event) => {
+                try {
+                    handleMessage(JSON.parse(event.data));
+                } catch(e) {
+                    log(`⚠️ 核心消息解析失败: ${e.message || e}`);
+                }
+            };
+        }
+
+        function handleMessage(msg) {
+            switch(msg.type) {
+                case 'log': log(msg.data); break;
+                case 'scan_progress': updateProgress(msg.data.current, msg.data.total); break;
+                case 'scan_result': queueScanResult(msg.data); break;
+                case 'scan_batch': (Array.isArray(msg.data) ? msg.data : []).forEach(queueScanResult); break;
+                case 'scan_trace_batch': mergeScanTraceBatch(msg.data); break;
+                case 'scan_complete_wait_dc': receiveDCSummary(msg.data); break;
+                case 'test_progress': log(`精测进度: ${msg.data.current}/${msg.data.total}`); break;
+                case 'test_result': addTestResult(msg.data); break;
+                case 'test_complete': testData = msg.data; renderAllTestResults(); break;
+                case 'speed_test_result': updateSpeedResult(msg.data); break;
+                case 'task_complete': resetButtonState(false); document.getElementById('progressCircle').textContent = msg.data && msg.data.completed ? '100%' : document.getElementById('progressCircle').textContent; if (flushTimer) { clearInterval(flushTimer); flushTimer = null; flushScanBufferToFeed(); } scheduleDeferredRank(msg.data && msg.data.completed ? '扫描完成' : '扫描已暂停'); break;
+                case 'error': log("错误: " + msg.data); resetButtonState(false); break;
+            }
+        }
+
+        function setPortSeries(s) {
+            if (checkScanningLock()) return;
+            document.getElementById('testPort').value = s === '443' ? '443, 8443, 2053, 2083, 2087, 2096' : '80, 8080, 8880, 2052, 2082, 2086, 2095';
+            syncPortBadgeStyles();
+        }
+        function togglePortBadge(p) {
+            if (checkScanningLock()) return;
+            const input = document.getElementById('testPort');
+            let ports = input.value.split(',').map(s => s.trim()).filter(Boolean);
+            const idx = ports.indexOf(p);
+            if (idx > -1) { if (ports.length > 1) ports.splice(idx, 1); } else { ports.push(p); }
+            input.value = ports.join(', ');
+            syncPortBadgeStyles();
+        }
+        function resetPortTo443() { if (checkScanningLock()) return; document.getElementById('testPort').value = '443'; syncPortBadgeStyles(); }
+        function syncPortBadgeStyles() {
+            const ports = document.getElementById('testPort').value.split(',').map(s => s.trim());
+            ['443', '80', '8443', '2053', '2083', '2087', '2096'].forEach(p => {
+                const el = document.getElementById('pb_' + p);
+                if (el) el.classList.toggle('active', ports.includes(p));
+            });
+        }
+        function appendColo(code) {
+            if (checkScanningLock()) return;
+            const input = document.getElementById('allowedColos');
+            let arr = input.value.split(',').map(s => s.trim().toUpperCase()).filter(s => s && !s.includes('留空'));
+            if (!arr.includes(code)) { arr.push(code); input.value = arr.join(', '); }
+        }
+        function clearColos() { if (checkScanningLock()) return; document.getElementById('allowedColos').value = ''; }
+
+        function resetButtonState(running) {
+            isTaskActive = running;
+            document.getElementById('btnStart').style.display = running ? 'none' : 'block';
+            document.getElementById('btnStop').style.display = running ? 'block' : 'none';
+            document.getElementById('fluid-mesh-canvas').classList.toggle('canvas-paused', running);
+        }
+
+        function cancelDeferredRank() {
+            if (rankDeferredTimer) { clearTimeout(rankDeferredTimer); rankDeferredTimer=null; }
+            rankDeferredDueAt=0;
+        }
+
+        function buildPrecisionBoardFromScan() {
+            const classified = scanData.filter(x => {
+                const dc = String(x?.DataCenter || '').trim();
+                return dc && dc !== 'Trace中';
+            });
+            testData = classified.map(x => ({...x}));
+            sortTestDataRanked();
+            testResultsCount = testData.length;
+            selectedPrecisionDC = '';
+
+            const groups = new Map();
+            for (const res of testData) {
+                const dc = String(res?.DataCenter || '').trim();
+                if (!dc) continue;
+                let g = groups.get(dc);
+                if (!g) {
+                    g = {
+                        DataCenter: dc,
+                        Country: res.Country || 'Global',
+                        Region: res.Region || dc,
+                        City: res.City || dc,
+                        IPCount: 0,
+                        MinLossRate: Number.isFinite(Number(res.LossRate)) ? Number(res.LossRate) : 1,
+                        AvgLatency: 0,
+                        _latencySum: 0,
+                        _latencyCount: 0
+                    };
+                    groups.set(dc, g);
+                }
+                g.IPCount++;
+                const loss = scanLossRate(res);
+                if (loss < g.MinLossRate) g.MinLossRate = loss;
+                const lat = scanLatencyMs(res);
+                if (Number.isFinite(lat) && lat < Number.MAX_SAFE_INTEGER) {
+                    g._latencySum += lat;
+                    g._latencyCount++;
+                }
+            }
+            dcList = Array.from(groups.values()).map(g => {
+                g.AvgLatency = g._latencyCount ? Math.round(g._latencySum / g._latencyCount) : '--';
+                delete g._latencySum;
+                delete g._latencyCount;
+                return g;
+            }).sort((a,b) => String(a.DataCenter).localeCompare(String(b.DataCenter)));
+
+            document.getElementById('feedTestCount').textContent = testResultsCount;
+            return { candidates: testResultsCount, colos: dcList.length };
+        }
+
+        function scanDomKey(res) {
+            return `${String(res?.IP || '')}_${String(res?.Port || '')}`.replace(/[^a-zA-Z0-9_-]/g, '_');
+        }
+
+        function getLiveScanCardHtml(res, index) {
+            const loss = (scanLossRate(res) * 100).toFixed(0);
+            const avg = scanLatencyMs(res).toFixed(0);
+            const min = (Number(res.MinLatency || 0) / 1000000).toFixed(0);
+            const max = (Number(res.MaxLatency || 0) / 1000000).toFixed(0);
+            const key = scanDomKey(res);
+            const traced = String(res?.DataCenter || '').trim() && String(res?.DataCenter || '') !== 'Trace中';
+            const colo = traced ? res.DataCenter : 'Trace中';
+            const location = traced ? `${res.Country || 'Global'} · ${res.City || res.Region || '--'}` : 'CF Trace 分类中…';
+            const method = traced ? 'TCP×4 + CF Trace' : 'TCP×4 · Trace中';
+            return `<div class="stream-card-row" id="scan-live-row-${key}" data-scan-key="${key}"><div class="card-rank-tag">#${index+1}</div><div class="card-main-meta"><div class="card-ip-line"><span class="card-ip-addr" onclick="copyToClipboard('${res.IP}', this)">${res.IP}</span><span class="card-colo-pill scan-live-colo" id="scan-live-colo-${key}">${colo}</span><span class="scan-live-tag" id="scan-live-tag-${key}" style="font-size:9px; color:${traced ? 'var(--success)' : 'var(--warning)'};">${method}</span></div><div class="scan-live-loc" id="scan-live-loc-${key}" style="font-size:10px; color:var(--text-muted);">${location} · 丢包 ${loss}% · 4次握手 · 最低 ${min}ms · 平均 ${avg}ms · 最高 ${max}ms</div></div><div class="card-perf-cluster"><div class="card-speed-badge">${avg} ms</div><div class="card-ping-badge">丢包 ${loss}%</div></div><div><button class="btn-card-op" onclick="copyToClipboard('${res.IP}', this)">复制</button></div></div>`;
+        }
+
+        function renderLiveScanFeed() {
+            const stage = document.getElementById('mainStreamStage');
+            if (!stage) return;
+            if (!scanData.length) {
+                stage.innerHTML = '<div style="padding:30px; text-align:center; color:var(--text-muted);">⏳ 正在进行高速探测，等待第一批 TCP×4 + CF Trace 结果...</div>';
+                return;
+            }
+            stage.innerHTML = '<div id="scanLiveHeader" style="padding:6px 10px; margin-bottom:5px; border-bottom:1px solid var(--glass-border); color:var(--text-muted); font-size:11px;">📡 探测流实时追加：按扫描完成先后顺序显示，扫描期间<strong>不排序、不重排、不生成精测榜</strong>。</div>';
+            const chunk = scanData.map((res, i) => getLiveScanCardHtml(res, i)).join('');
+            stage.insertAdjacentHTML('beforeend', chunk);
+            stage.scrollTop = stage.scrollHeight;
+        }
+
+        function scheduleDeferredRank(reason) {
+            cancelDeferredRank();
+            rankStageReady=false;
+            rankDeferredDueAt=Date.now()+RANK_DEFER_MS;
+            log(`🧠 ${reason}：探测流继续保留原始顺序；30秒后才统一分类、加载、排序精测榜。`);
+            rankDeferredTimer=setTimeout(() => {
+                rankDeferredTimer=null;
+                rankDeferredDueAt=0;
+                log('🧩 开始整理精测候选：汇总扫描结果与 CF Trace 地区分类...');
+                const summary = buildPrecisionBoardFromScan();
+                rankStageReady=true;
+                if (currentFeedMode === 'test') {
+                    renderTestStageContent();
+                }
+                log(`✅ 精测榜整理完成：${summary.candidates} 个已分类候选，${summary.colos} 个 CF Colo；探测流仍保持扫描原始顺序。`);
+            }, RANK_DEFER_MS);
+        }
+
+        function startUnifiedTask() {
+            cancelDeferredRank();
+            rankStageReady=false;
+            const enableV4 = document.getElementById('chk_v4').checked, enableV6 = document.getElementById('chk_v6').checked;
+            // 扫描阶段固定执行 TCP×4 + CF Trace 分类；HTTP/综合精测仍留给后续精测。
+            const enableTCP = true, enableHTTP = false;
+            let threads = parseInt(document.getElementById('scanThreads').value);
+            if (!Number.isFinite(threads) || threads <= 0) threads = 200;
+            if (threads > 1000) threads = 1000;
+            document.getElementById('scanThreads').value = threads;
+            const portsStr = document.getElementById('testPort').value.trim();
+            const delay = parseInt(document.getElementById('testDelay').value) || 500, subnetMode = document.getElementById('param_subnet').value;
+            let allowedColos = document.getElementById('allowedColos').value.trim();
+            if (allowedColos.includes('留空')) allowedColos = '';
+
+            if (!safeSend({ type: 'start_task', data: { enableV4, enableV6, enableTCP, enableHTTP, threads, portsStr, delay, allowedColos, subnetMode } }, '启动扫描')) return;
+
+            resetButtonState(true);
+            scanData = []; scanBuffer = []; testData = []; dcList = []; scanResultsCount = 0; testResultsCount = 0;
+            document.getElementById('mainStreamStage').innerHTML = '';
+            switchStageFeed('scan');
+            if (flushTimer) clearInterval(flushTimer);
+            // 扫描期间探测流正常实时追加；这里只做批量追加，不排序/重排。
+            flushTimer = setInterval(flushScanBufferToFeed, 500);
+        }
+
+        function stopUnifiedTask() {
+            const sent = safeSend({ type: 'stop_task' }, '终止扫描', false);
+            if (!sent) return;
+            resetButtonState(false);
+            if (flushTimer) { clearInterval(flushTimer); flushTimer = null; }
+            flushScanBufferToFeed();
+            scheduleDeferredRank('人工暂停/终止扫描');
+        }
+
+        function scanLatencyMs(res) {
+            const v = Number(res?.AvgLatency);
+            if (Number.isFinite(v) && v > 0) return v / 1000000;
+            if (Number.isFinite(Number(res?.TCPDuration))) return Number(res.TCPDuration) / 1000000;
+            const n = parseFloat(String(res?.LatencyStr || '').replace(/[^0-9.]/g, ''));
+            return Number.isFinite(n) ? n : Number.MAX_SAFE_INTEGER;
+        }
+
+        function scanLossRate(res) {
+            const n = Number(res?.LossRate);
+            return Number.isFinite(n) ? n : 1;
+        }
+
+        function sortScanDataRanked() {
+            scanData.sort((a, b) => {
+                const la = scanLossRate(a), lb = scanLossRate(b);
+                if (la !== lb) return la - lb;
+                const aa = scanLatencyMs(a), ab = scanLatencyMs(b);
+                if (aa !== ab) return aa - ab;
+                const ma = Number(a?.MinLatency || Number.MAX_SAFE_INTEGER);
+                const mb = Number(b?.MinLatency || Number.MAX_SAFE_INTEGER);
+                return ma - mb;
+            });
+        }
+
+        function renderRankedScanFeed() {
+            const stage = document.getElementById('mainStreamStage');
+            if (!stage) return;
+            sortScanDataRanked();
+            stage.innerHTML = `<div style="padding:6px 10px; margin-bottom:5px; border-bottom:1px solid var(--glass-border); color:var(--text-muted); font-size:11px;">📡 本地网络适配探测流：每个 IP 在扫描阶段独立做 4 次 TCP 握手，再由 CF Trace 完成地区分类；按 <strong>丢包低 → 平均延迟低 → 最低延迟低</strong> 排序；这里不做下载测速。</div>` + scanData.slice(0, 60).map((res, i) => {
+                const loss = (scanLossRate(res) * 100).toFixed(0);
+                const avg = scanLatencyMs(res).toFixed(0);
+                const min = (Number(res.MinLatency || 0) / 1000000).toFixed(0);
+                const max = (Number(res.MaxLatency || 0) / 1000000).toFixed(0);
+                return `<div class="stream-card-row"><div class="card-rank-tag">#${i+1}</div><div class="card-main-meta"><div class="card-ip-line"><span class="card-ip-addr" onclick="copyToClipboard('${res.IP}', this)">${res.IP}</span><span class="card-colo-pill">${res.DataCenter || 'Trace失败未入榜'}</span><span style="font-size:9px; color:var(--success);">TCP快筛</span></div><div style="font-size:10px; color:var(--text-muted);">${res.Country||'Global'} · ${res.City} · 丢包 ${loss}% · 4次握手 · 最低 ${min}ms · 平均 ${avg}ms · 最高 ${max}ms</div></div><div class="card-perf-cluster"><div class="card-speed-badge">${avg} ms</div><div class="card-ping-badge">丢包 ${loss}%</div></div><div><button class="btn-card-op" onclick="copyToClipboard('${res.IP}', this)">复制</button></div></div>`;
+            }).join('');
+        }
+
+        function queueScanResult(res) {
+            if (!res || !res.IP) return;
+            scanResultsCount++;
+            scanData.push(res);
+            scanBuffer.push(res);
+            const feed = document.getElementById('feedScanCount');
+            const kpi = document.getElementById('kpi_scan_count');
+            if (feed) feed.textContent = scanResultsCount;
+            if (kpi) kpi.textContent = scanResultsCount;
+        }
+
+        function mergeScanTraceBatch(batch) {
+            if (!Array.isArray(batch) || batch.length === 0) return;
+            const map = new Map();
+            scanData.forEach((x, i) => map.set(`${x.IP}|${x.Port}`, i));
+            batch.forEach(item => {
+                const idx = map.get(`${item.IP}|${item.Port}`);
+                if (idx === undefined) return;
+                scanData[idx] = {...scanData[idx], ...item};
+                const key = scanDomKey(item);
+                const coloEl = document.getElementById(`scan-live-colo-${key}`);
+                const locEl = document.getElementById(`scan-live-loc-${key}`);
+                const tagEl = document.getElementById(`scan-live-tag-${key}`);
+                if (coloEl) coloEl.textContent = item.DataCenter || 'Trace中';
+                if (locEl) locEl.textContent = `${item.Country || 'Global'} · ${item.City || item.Region || '--'} · 丢包 ${(scanLossRate(item)*100).toFixed(0)}% · 4次握手 · 最低 ${(Number(item.MinLatency||0)/1000000).toFixed(0)}ms · 平均 ${scanLatencyMs(item).toFixed(0)}ms · 最高 ${(Number(item.MaxLatency||0)/1000000).toFixed(0)}ms`;
+                if (tagEl) { tagEl.textContent = item.DataCenter ? 'TCP×4 + CF Trace' : 'TCP×4 · Trace中'; tagEl.style.color = item.DataCenter ? 'var(--success)' : 'var(--warning)'; }
+            });
+        }
+
+        function flushScanBufferToFeed() {
+            if (scanBuffer.length === 0) return;
+            const buffered = scanBuffer.slice();
+            scanBuffer = [];
+            document.getElementById('feedScanCount').textContent = scanResultsCount;
+            document.getElementById('kpi_scan_count').textContent = scanResultsCount;
+            if (currentFeedMode !== 'scan') {
+                scanBuffer = buffered.concat(scanBuffer);
+                return;
+            }
+            const stage = document.getElementById('mainStreamStage');
+            if (!stage) return;
+            if (!document.getElementById('scanLiveHeader')) {
+                stage.innerHTML = '<div id="scanLiveHeader" style="padding:6px 10px; margin-bottom:5px; border-bottom:1px solid var(--glass-border); color:var(--text-muted); font-size:11px;">📡 探测流实时追加：按扫描完成先后顺序显示，扫描期间<strong>不排序、不重排、不生成精测榜</strong>。</div>';
+            }
+            const baseIndex = scanResultsCount - buffered.length;
+            stage.insertAdjacentHTML('beforeend', buffered.map((res, i) => getLiveScanCardHtml(res, baseIndex + i)).join(''));
+            stage.scrollTop = stage.scrollHeight;
+        }
+
+        function updateProgress(cur, tot) {
+            const pct = Math.round((cur / tot) * 100);
+            document.getElementById('progressCircle').textContent = pct + '%';
+            document.getElementById('thinProgressBar').style.width = pct + '%';
+            document.getElementById('kpi_progress_text').textContent = `${cur.toLocaleString()} / ${tot.toLocaleString()}`;
+        }
+        let selectedPrecisionDC = '';
+
+        function receiveDCSummary(data) {
+            dcList = Array.isArray(data) ? data : [];
+            if (rankStageReady && currentFeedMode === 'test') renderTestStageContent();
+        }
+
+        function precisionRows() {
+            const rows = selectedPrecisionDC ? scanData.filter(x => x.DataCenter === selectedPrecisionDC) : scanData.slice();
+            rows.sort((a, b) => {
+                const la = scanLossRate(a), lb = scanLossRate(b);
+                if (la !== lb) return la - lb;
+                const aa = scanLatencyMs(a), ab = scanLatencyMs(b);
+                if (aa !== ab) return aa - ab;
+                return String(a.IP || '').localeCompare(String(b.IP || ''));
+            });
+            return rows;
+        }
+
+        function precisionReplaceFromScanResult(res) {
+            const idx = testData.findIndex(x => x.IP === res.IP && x.Port === res.Port);
+            if (idx >= 0) testData[idx] = res;
+            else testData.push(res);
+            testData.sort((a, b) => {
+                const la = scanLossRate(a), lb = scanLossRate(b);
+                if (la !== lb) return la - lb;
+                return scanLatencyMs(a) - scanLatencyMs(b);
+            });
+            testResultsCount = testData.length;
+            document.getElementById('feedTestCount').textContent = testResultsCount;
+        }
+
+        function selectDC(dc) {
+            if (checkScanningLock()) return;
+            selectedPrecisionDC = dc || '';
+            renderTestStageContent();
+        }
+
+        function retestDC(dc) {
+            if (checkScanningLock()) return;
+            const sent = safeSend({ type: 'start_test', data: { dc, port: parseInt(document.getElementById('testPort').value) || 443, delay: parseInt(document.getElementById('testDelay').value) || 500 } }, '重新精测');
+            if (!sent) return;
+            testData = [];
+            testResultsCount = 0;
+            selectedPrecisionDC = dc || '';
+        }
+
+        function sortTestDataRanked() {
+            testData.sort((a, b) => {
+                const lossA = scanLossRate(a), lossB = scanLossRate(b);
+                if (lossA !== lossB) return lossA - lossB;
+                const avgA = scanLatencyMs(a), avgB = scanLatencyMs(b);
+                if (avgA !== avgB) return avgA - avgB;
+                const minA = Number(a.MinLatency || Number.MAX_SAFE_INTEGER), minB = Number(b.MinLatency || Number.MAX_SAFE_INTEGER);
+                if (minA !== minB) return minA - minB;
+                return String(a.IP || '').localeCompare(String(b.IP || ''));
+            });
+        }
+
+        function addTestResult(res) {
+            const idx = testData.findIndex(x => x.IP === res.IP && x.Port === res.Port);
+            if (idx >= 0) testData[idx] = res; else testData.push(res);
+            testResultsCount = testData.length;
+            sortTestDataRanked();
+            document.getElementById('feedTestCount').textContent = testResultsCount;
+            renderAllTestResults();
+        }
+
+        function renderAllTestResults() {
+            const c = document.getElementById('testItemsContainer');
+            if (!c) return;
+            const rows = selectedPrecisionDC ? testData.filter(x => x.DataCenter === selectedPrecisionDC) : testData.slice();
+            rows.sort((a, b) => {
+                const lossA = scanLossRate(a), lossB = scanLossRate(b);
+                if (lossA !== lossB) return lossA - lossB;
+                return scanLatencyMs(a) - scanLatencyMs(b);
+            });
+            c.innerHTML = rows.map((res, i) => {
+                const loss = (scanLossRate(res) * 100).toFixed(0);
+                const minMs = (Number(res.MinLatency || 0) / 1000000).toFixed(0);
+                const avgMs = scanLatencyMs(res).toFixed(0);
+                const maxMs = (Number(res.MaxLatency || 0) / 1000000).toFixed(0);
+                const speedId = res.IP.replace(/[:.]/g,'_');
+                return `<div class="stream-card-row"><div class="card-rank-tag">#${i+1}</div><div class="card-main-meta"><div class="card-ip-line"><span class="card-ip-addr" onclick="copyToClipboard('${res.IP}', this)">${res.IP}</span><span class="card-colo-pill">${res.DataCenter}</span><span style="font-size:9px; color:var(--success);">本地适配候选</span></div><div style="font-size:10px; color:var(--text-muted);">${res.City} / ${res.Region} · 4次握手 + CF Trace · 丢包 ${loss}% · 最低 ${minMs}ms · 平均 ${avgMs}ms · 最高 ${maxMs}ms</div></div><div class="card-perf-cluster"><div class="card-speed-badge" id="speed-badge-${speedId}">${res.Speed||'未测速'}</div><div class="card-ping-badge">${loss}% 丢包</div></div><div style="display:flex; gap:3px; flex-wrap:wrap; justify-content:flex-end;"><button class="btn-card-op" onclick="runSpeedTest('${res.IP}')">测速</button><button class="btn-card-op" onclick="inspectNode('${res.IP}')">画像</button></div></div>`;
+            }).join('');
+        }
+
+        function runSpeedTest(ip) {
+            if (checkScanningLock()) return;
+            const sent = safeSend({ type: 'start_speed_test', data: { ip, port: parseInt(document.getElementById('testPort').value) || 443 } }, '节点测速');
+            if (!sent) return;
+            const b = document.getElementById('speed-badge-' + ip.replace(/[:.]/g,'_')); if (b) b.textContent = "⏳测速中...";
+        }
+
+        function batchSpeedTest(all=false) {
+            if (checkScanningLock()) return;
+            const rows = all ? testData.slice() : precisionRows();
+            if (!rows.length) return alert('当前没有可测速的精测候选。');
+            const limit = Math.min(rows.length, 50);
+            rows.slice(0, limit).forEach((res, idx) => {
+                setTimeout(() => runSpeedTest(res.IP), idx * 120);
+            });
+            log(`⚡ 已把 ${limit} 个候选加入单车道测速队列；实际测速仍由后端独占测速总线逐个执行。`);
+        }
+
+        function updateSpeedResult(data) {
+            const b = document.getElementById('speed-badge-' + data.ip.replace(/[:.]/g,'_'));
+            if (b) b.textContent = data.reason ? `${data.speed} · ${data.reason}` : data.speed;
+            const it = testData.find(t => t.IP === data.ip); if (it) { it.Speed = data.speed; it.SpeedReason = data.reason || ''; }
+        }
+
+        function switchStageFeed(mode) {
+            currentFeedMode = mode;
+            ['scan','test','pool','vault'].forEach(x => { const el = document.getElementById('tab_btn_feed_' + x); if (el) el.classList.toggle('active', mode === x); });
+            const s = document.getElementById('mainStreamStage'); s.innerHTML = '';
+            if (mode === 'scan') {
+                renderLiveScanFeed();
+                if (!isTaskActive && rankDeferredDueAt > 0) {
+                    const sec = Math.max(1, Math.ceil((rankDeferredDueAt - Date.now()) / 1000));
+                    s.insertAdjacentHTML('afterbegin', `<div style="padding:5px 10px; margin-bottom:5px; background:var(--panel-sub); border:1px solid var(--glass-border); border-radius:6px; font-size:10px; color:var(--text-muted);">⏳ 扫描已停止，${sec} 秒后统一整理精测榜；当前探测流保持原始顺序。</div>`);
+                }
+            } else if (mode === 'test') {
+                if (!rankStageReady) {
+                    const sec = rankDeferredDueAt > 0 ? Math.max(1, Math.ceil((rankDeferredDueAt - Date.now()) / 1000)) : 30;
+                    s.innerHTML = `<div style="padding:30px; text-align:center; color:var(--text-muted);"><div style="font-size:28px; margin-bottom:8px;">⏳</div><strong>精测榜暂不加载</strong><div style="font-size:11px; margin-top:6px;">扫描期间不分类、不重排；${isTaskActive ? '扫描完成或人工暂停后' : '当前已停止扫描，'}再等待约 ${sec} 秒，统一执行分类、加载和排序。</div></div>`;
+                } else {
+                    renderTestStageContent();
+                }
+            }
+            else if (mode === 'pool') { renderPoolFeedTriChambers(); }
+            else if (mode === 'vault') { renderVaultChambers(); }
+        }
+
+        function currentR2Config() {
+            const cfg = cachedPipeData && cachedPipeData.config ? cachedPipeData.config : {};
+            return {
+                mode: cfg.r2_mode === 'manual' ? 'manual' : 'auto',
+                manualColos: Array.isArray(cfg.r2_manual_colos) ? cfg.r2_manual_colos : [],
+                perRegion: Number(cfg.r2_per_region || 2)
+            };
+        }
+
+        function toggleR2RoutingMode(mode) {
+            const manual = mode === 'manual';
+            document.querySelectorAll('.r2-colo-check').forEach(el => { el.disabled = !manual; });
+            const hint = document.getElementById('r2_mode_hint');
+            if (hint) hint.textContent = manual ? '手动：只从勾选地区接入；不勾选任何地区则自动恢复全地区。' : '自动：精测榜当前全部地区都会参与，每个地区固定取2个起步，后台自动轮转。';
+        }
+
+        function saveR2Routing() {
+            if (checkScanningLock()) return;
+            const mode = document.querySelector('input[name="r2_mode"]:checked')?.value || 'auto';
+            const manualColos = Array.from(document.querySelectorAll('.r2-colo-check:checked')).map(el => el.value);
+            fetch('/api/pipeline/r2/config', {
+                method: 'POST',
+                headers: {'Content-Type':'application/json'},
+                body: JSON.stringify({mode, manual_colos: manualColos})
+            }).then(r => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); })
+              .then(() => { log('🧭 R2 地区接入规则已保存：' + (mode === 'manual' ? (manualColos.length ? '手动地区' : '未勾选→自动') : '全地区自动')); refreshPipe(); })
+              .catch(err => log('❌ R2地区规则保存失败: ' + (err.message || err)));
+        }
+
+        function renderTestStageContent() {
+            const s = document.getElementById('mainStreamStage');
+            const total = testData.length;
+            const label = selectedPrecisionDC ? `当前查看：${selectedPrecisionDC}` : '当前查看：全部本地适配候选';
+            const cfg = currentR2Config();
+            const selected = new Set(cfg.manualColos);
+            const regions = Array.isArray(dcList) ? dcList.slice() : [];
+            const regionHtml = regions.length ? regions.map(dc => {
+                const checked = cfg.mode === 'manual' ? selected.has(dc.DataCenter) : true;
+                return `<label style="display:flex; align-items:center; gap:4px; padding:3px 6px; border:1px solid var(--glass-border); border-radius:5px; background:var(--panel-sub); font-size:10px; white-space:nowrap;"><input class="r2-colo-check" type="checkbox" value="${dc.DataCenter}" ${checked?'checked':''} ${cfg.mode==='manual'?'':'disabled'}>${dc.DataCenter} <span style="color:var(--text-muted);">${dc.IPCount}</span></label>`;
+            }).join('') : `<span style="font-size:10px;color:var(--text-muted);">这些 Colo 都来自扫描阶段的 CF Trace 分类。</span>`;
+            s.innerHTML = `
+                <div style="background:var(--panel-sub); border:1px solid var(--glass-border); border-radius:6px; padding:6px 10px; margin-bottom:6px; flex:0 0 auto;">
+                    <div style="display:flex; justify-content:space-between; gap:8px; align-items:center; flex-wrap:wrap;">
+                        <strong>🧭 R2 地区接入规则</strong>
+                        <span style="font-size:10px; color:var(--accent);">每地区固定 ${cfg.perRegion} 个/轮 · 正常阶段最多50个 · 单IP独享5秒</span>
+                    </div>
+                    <div style="display:flex; gap:12px; align-items:center; margin-top:5px; flex-wrap:wrap; font-size:11px;">
+                        <label><input type="radio" name="r2_mode" value="auto" ${cfg.mode==='auto'?'checked':''} onchange="toggleR2RoutingMode('auto')"> 自动</label>
+                        <label><input type="radio" name="r2_mode" value="manual" ${cfg.mode==='manual'?'checked':''} onchange="toggleR2RoutingMode('manual')"> 手动选地区</label>
+                        <button class="btn-card-op" onclick="saveR2Routing()" style="background:var(--success);color:#fff;">保存接入规则</button>
+                    </div>
+                    <div id="r2_mode_hint" style="font-size:10px;color:var(--text-muted);margin-top:4px;">${cfg.mode==='manual'?'手动：只从勾选地区接入；不勾选任何地区则自动恢复全地区。':'自动：精测榜当前全部地区都会参与，每个地区固定取2个起步，后台自动轮转。'}</div>
+                    <div style="display:flex; flex-wrap:wrap; gap:4px; margin-top:5px; max-height:86px; overflow:auto;">${regionHtml}</div>
+                </div>
+                <div style="background:var(--panel-sub); border:1px solid var(--glass-border); border-radius:6px; padding:6px 10px; margin-bottom:6px; flex:0 0 145px; display:flex; flex-direction:column; overflow:hidden;">
+                    <div style="display:flex; justify-content:space-between; margin-bottom:4px;"><strong>📊 本地网络适配候选汇总</strong><span style="color:var(--accent);">${total} IP · 4次握手 + CF Trace</span></div>
+                    <div style="font-size:10px; color:var(--text-muted); margin-bottom:4px;">每个 IP 已在扫描阶段完成 4 次 TCP 握手，并通过 CF Trace 完成 Colo/地区分类；地区筛选也在扫描阶段执行。精测榜这里只查看已经完成分类的扫描结果，不由 R2 负责地区识别。</div>
+                    <div class="scroll-chain" style="flex:1; overflow:auto;">${dcList.map(dc => `<div style="display:flex; justify-content:space-between; gap:8px; padding:4px 0; border-bottom:1px dashed var(--glass-border); font-size:11px;"><div><strong>${dc.DataCenter}</strong> (${dc.City} / ${dc.Region}) · ${dc.IPCount} IP · 最佳丢包 ${(Number(dc.MinLossRate||0)*100).toFixed(0)}% · 平均 ${dc.AvgLatency||'--'}ms</div><div style="display:flex; gap:3px;"><button class="btn-card-op" onclick="selectDC('${dc.DataCenter}')">查看</button><button class="btn-card-op" onclick="retestDC('${dc.DataCenter}')">手动重测</button></div></div>`).join('')}</div>
+                </div>
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;"><strong>精测榜 / 详细列表 · ${label}</strong><div style="display:flex; gap:3px;"><button class="btn-card-op" onclick="selectDC('')">全部</button><button class="btn-card-op" onclick="batchSpeedTest(false)" style="background:var(--success); color:#fff;">⚡批量测速</button></div></div>
+                <div id="testItemsContainer" class="scroll-chain" style="flex:1; overflow:auto; display:flex; flex-direction:column; gap:4px;"></div>`;
+            renderAllTestResults();
+        }
+
+        function renderPoolFeedTriChambers() {
+            if (!cachedPipeData) return;
+            const s = document.getElementById('mainStreamStage'); if (!s) return;
+            const ids = ['scroll_r4_v4','scroll_r4_v6','scroll_r3_v4','scroll_r3_v6','scroll_r2'];
+            const mem = {}; ids.forEach(id => { const el = document.getElementById(id); mem[id] = el ? { top: el.scrollTop, left: el.scrollLeft } : { top: 0, left: 0 }; });
+            s.innerHTML = `<div class="tri-chamber-container"><div class="split-chamber-row"><div class="pool-chamber-section"><div class="chamber-title"><span style="color:var(--accent);">👑 R4待命仓 (IPv4 · ${(cachedPipeData.pool4_v4||[]).length}/100席)</span><span style="font-size:10px;">物理Slot顺序 · 单IP 5秒</span></div><div class="chamber-scroll-area scroll-chain" id="scroll_r4_v4">${renderCandidateRows(cachedPipeData.pool4_v4||[], true, 'A', true)}</div></div><div class="pool-chamber-section"><div class="chamber-title"><span style="color:#06b6d4;">🚀 R4待命仓 (IPv6 · ${(cachedPipeData.pool4_v6||[]).length}/100席)</span><span style="font-size:10px;">物理Slot顺序 · 单IP 5秒</span></div><div class="chamber-scroll-area scroll-chain" id="scroll_r4_v6">${renderCandidateRows(cachedPipeData.pool4_v6||[], true, 'AAAA', true)}</div></div></div><div class="split-chamber-row"><div class="pool-chamber-section"><div class="chamber-title"><span>⚔️ R3军机水库 (IPv4 · ${(cachedPipeData.pool3_v4||[]).length}席)</span><span style="font-size:10px; color:var(--warning);">70%擂台PK</span></div><div class="chamber-scroll-area scroll-chain" id="scroll_r3_v4">${renderCandidateRows(cachedPipeData.pool3_v4||[], false, 'A', false)}</div></div><div class="pool-chamber-section"><div class="chamber-title"><span>⚔️ R3军机水库 (IPv6 · ${(cachedPipeData.pool3_v6||[]).length}席)</span><span style="font-size:10px; color:var(--warning);">70%擂台PK</span></div><div class="chamber-scroll-area scroll-chain" id="scroll_r3_v6">${renderCandidateRows(cachedPipeData.pool3_v6||[], false, 'AAAA', false)}</div></div></div><div class="pool-chamber-section" style="flex:0.9;"><div class="chamber-title"><span>🧪 R2直接接入候选 (总积蓄 ${(cachedPipeData.pool2_count ?? (cachedPipeData.pool2||[]).length).toLocaleString()} 节点 · V4 ${(cachedPipeData.pool2_v4_count||0).toLocaleString()} / V6 ${(cachedPipeData.pool2_v6_count||0).toLocaleString()}，来自精测榜 · 地区轮转2个/区 · 不建立独立R2库)</span></div><div class="chamber-scroll-area scroll-chain" id="scroll_r2">${(cachedPipeData.pool2||[]).slice(0,60).map((c, idx) => `<div class="stream-card-row" style="margin-bottom:3px;"><div class="card-rank-tag">${idx+1}</div><div class="card-main-meta"><div class="card-ip-line"><span class="card-ip-addr" onclick="copyToClipboard('${c.ip}', this)">${c.ip}</span><span style="font-size:9px;">${c.version}</span></div><div style="font-size:10px; color:var(--text-muted);">${c.delay}ms | ${c.status}</div></div><div class="card-perf-cluster">${getMethodBadgeHtml(c.Method)}</div><div><button class="btn-card-op" onclick="copyToClipboard('${c.ip}', this)">复制</button></div></div>`).join('')}</div></div></div>`;
+            ids.forEach(id => { const el = document.getElementById(id); if (el && mem[id]) { el.scrollTop = mem[id].top; el.scrollLeft = mem[id].left; } });
+        }
+
+        function renderVaultChambers() {
+            if (!cachedPipeData) return;
+            const s = document.getElementById('mainStreamStage'); if (!s) return;
+            s.innerHTML = `<div class="tri-chamber-container"><div class="split-chamber-row"><div class="pool-chamber-section"><div class="chamber-title"><span style="color:#f59e0b;">☀️ 白天历史退役阁 (${(cachedPipeData.retired_daytime||[]).length}席)</span></div><div class="chamber-scroll-area scroll-chain">${renderRetiredRows(cachedPipeData.retired_daytime||[])}</div></div><div class="pool-chamber-section"><div class="chamber-title"><span style="color:#8b5cf6;">🌙 高峰历史退役阁 (${(cachedPipeData.retired_peak||[]).length}席)</span></div><div class="chamber-scroll-area scroll-chain">${renderRetiredRows(cachedPipeData.retired_peak||[])}</div></div></div><div class="split-chamber-row"><div class="pool-chamber-section"><div class="chamber-title"><span style="color:#06b6d4;">❄️ 白天封存休眠舱 (${(cachedPipeData.sealed_daytime||[]).length}席)</span></div><div class="chamber-scroll-area scroll-chain">${renderCandidateRows(cachedPipeData.sealed_daytime||[], false, 'A', true)}</div></div><div class="pool-chamber-section"><div class="chamber-title"><span style="color:#ec4899;">⚡ 高峰封存休眠舱 (${(cachedPipeData.sealed_peak||[]).length}席)</span></div><div class="chamber-scroll-area scroll-chain">${renderCandidateRows(cachedPipeData.sealed_peak||[], false, 'AAAA', true)}</div></div></div></div>`;
+        }
+
+        function renderRetiredRows(list) {
+            if (!list || list.length === 0) return `<div style="text-align:center; padding:12px 0; color:var(--text-muted); font-size:11px;">空无一人</div>`;
+            return list.map((r, i) => `<div class="stream-card-row" style="margin-bottom:3px; grid-template-columns:32px minmax(180px,1fr) 75px 125px;" onclick="inspectNode('${r.ip}')"><div class="card-rank-tag">#${i+1}</div><div class="card-main-meta"><div class="card-ip-line"><span class="card-ip-addr" onclick="copyToClipboard('${r.ip}', this)">${r.ip}</span><span class="card-colo-pill">${r.colo||'CF'}</span></div><div style="font-size:10px; color:var(--text-muted);">${r.status||'退役'}</div></div><div class="card-perf-cluster"><div class="card-speed-badge">${(r.last_speed/8).toFixed(2)}M</div></div><div style="display:flex; gap:3px;"><button class="btn-card-op" onclick="event.stopPropagation(); manualPinQuick('${r.ip}', '${r.ip.includes(':')?'AAAA':'A'}')">上位</button><button class="btn-card-op" onclick="event.stopPropagation(); inspectNode('${r.ip}')">画像</button><button class="btn-card-op" onclick="event.stopPropagation(); reviveRetired('${r.ip}')">回3轮</button><button class="btn-card-op" style="color:var(--danger);" onclick="event.stopPropagation(); deleteRetired('${r.ip}')">删</button></div></div>`).join('');
+        }
+
+        function renderCandidateRows(list, isR4, type, allowProfile) {
+            if (!list || list.length === 0) return `<div style="text-align:center; padding:8px 0; color:var(--text-muted); font-size:11px;">暂无储备</div>`;
+            return list.map((c, i) => `<div class="stream-card-row" style="margin-bottom:3px; grid-template-columns:32px minmax(180px,1fr) 75px ${allowProfile?'85px':'45px'};"><div class="card-rank-tag">${isR4?'👑':'#'}${i+1}</div><div class="card-main-meta"><div class="card-ip-line"><span class="card-ip-addr" onclick="copyToClipboard('${c.ip}', this)">${c.ip}</span><span class="card-colo-pill">${c.colo||'CF'}</span></div><div style="font-size:10px; color:var(--text-muted);">${c.status}</div></div><div class="card-perf-cluster"><div class="card-speed-badge">${(c.speed/8).toFixed(2)}M</div></div><div style="display:flex; gap:3px;"><button class="btn-card-op" onclick="event.stopPropagation(); manualPinQuick('${c.ip}', '${type}')">上位</button>${allowProfile?`<button class="btn-card-op" onclick="event.stopPropagation(); inspectNode('${c.ip}')">画像</button>`:''}</div></div>`).join('');
+        }
+
+        function manualPinQuick(ip, type) {
+            if (checkScanningLock()) return;
+            const targets = (cachedPipeData.domain_status||[]).filter(d => d.type === type);
+            if (targets.length === 0) return alert(`未找到承载 ${type} 的子域名！`);
+            let p = `手动指定 [${ip}] 上位：\n\n`; targets.forEach((t, i) => p += `${i+1}. ${t.full_domain}\n`);
+            const ch = prompt(p, "1"); if (!ch) return;
+            const chosen = targets[parseInt(ch)-1]; if (!chosen) return;
+            fetch(`/api/pipeline/subdomain/pin?sub=${encodeURIComponent(chosen.subdomain)}&type=${encodeURIComponent(chosen.type)}&ip=${encodeURIComponent(ip)}`).then(() => refreshPipe());
+        }
+
+        function renderColoredHops(pathString) {
+            const c = document.getElementById('p_path_steps'); if (!c || !pathString || !pathString.includes('➔')) return;
+            const colors = ['hop-0','hop-1','hop-2','hop-3','hop-4'];
+            c.innerHTML = pathString.split(' ➔ ').map((s, i) => `<span class="hop-pill ${colors[Math.min(i,4)]}">${s}</span>`).join('➔');
+        }
+
+        function inspectNode(ip) {
+            if (!ip || !cachedPipeData) return;
+            inspectedIP = ip; lastManualInspectTime = Date.now();
+            if (inspectUnlockTimer) clearTimeout(inspectUnlockTimer);
+            inspectUnlockTimer = setTimeout(() => { inspectedIP = null; }, MANUAL_LOCK_MS);
+            renderProfileCard(ip, false);
+        }
+
+        function renderProfileCard(ip, isCarousel, boundDomain, boundType, boundMode, boundLastUpTime) {
+            if (!cachedPipeData) return;
+            const prof = cachedPipeData.profiles ? cachedPipeData.profiles[ip] : null;
+            document.getElementById('cardTitle').textContent = isCarousel ? `👑 在位巡航: ${boundDomain} (${boundType})` : `🔍 全息数字身份证: ${ip}`;
+            const cardDomainStatus = document.getElementById('cardDomainStatus');
+            if (cardDomainStatus) {
+                if (isCarousel && boundDomain) {
+                    const rg = getReignText(boundLastUpTime);
+                    cardDomainStatus.textContent = `${modeLabel(boundMode)} · 防抖 ${rg.cooldown} · 在线 ${rg.online} · 稳坐 ${rg.stable}`;
+                } else {
+                    cardDomainStatus.textContent = '节点画像 / 非轮播绑定状态';
+                }
+            }
+            document.getElementById('p_ip').textContent = ip;
+            if (prof) {
+                document.getElementById('p_speed').textContent = prof.speed_mb ? `${prof.speed_mb.toFixed(2)} MB/s` : '--';
+                document.getElementById('p_latency').textContent = `${prof.latency_ms||'--'} ms`;
+                document.getElementById('p_colo').textContent = `${prof.colo||'CF'} 机房`;
+                document.getElementById('p_isp').textContent = prof.isp||'骨干网';
+                document.getElementById('p_born').textContent = prof.born_time ? new Date(prof.born_time).toLocaleTimeString() : '--';
+                renderColoredHops(prof.backbone_path);
+            }
+        }
+
+        function triggerCardLock() { if (checkScanningLock() || !inspectedIP) return; fetch('/api/pipeline/node/lock?ip=' + encodeURIComponent(inspectedIP)).then(() => refreshPipe()); }
+        function triggerCardDemote() { if (checkScanningLock() || !inspectedIP) return; if (confirm(`确认将节点 ${inspectedIP} 打回第 3 轮打磨？`)) fetch('/api/pipeline/node/demote?ip=' + encodeURIComponent(inspectedIP)).then(() => { inspectedIP=null; refreshPipe(); }); }
+        function triggerCardDelete() { if (checkScanningLock() || !inspectedIP) return; if (confirm(`确认物理处决节点 ${inspectedIP}？`)) fetch('/api/pipeline/node/delete?ip=' + encodeURIComponent(inspectedIP)).then(() => { inspectedIP=null; refreshPipe(); }); }
+
+        function togglePipelinePower() { if (checkScanningLock()) return; savePipeline(!(cachedPipeData&&cachedPipeData.config&&cachedPipeData.config.enabled)); }
+        function fetchDomains() {
+            const token = document.getElementById('cf_token').value.trim(); if (!token) return;
+            fetch('/api/cf/zones?token=' + encodeURIComponent(token)).then(r => r.json()).then(zones => {
+                const s = document.getElementById('cf_zone_select');
+                if (zones && zones.length > 0) s.innerHTML = zones.map(z => `<option value="${z.id||z.ID}" data-name="${z.name}">${z.name}</option>`).join('');
+            });
+        }
+
+        function addNewSubdomain() {
+            if (checkScanningLock()) return;
+            const sub = document.getElementById('new_sub_input').value.trim(), t = document.getElementById('new_sub_type').value; if (!sub) return;
+            fetch(`/api/pipeline/subdomain/add?sub=${encodeURIComponent(sub)}&type=${encodeURIComponent(t)}&mode=auto`).then(() => { document.getElementById('new_sub_input').value=''; refreshPipe(); });
+        }
+        function deleteSubdomain(sub, t) { if (checkScanningLock() || !confirm(`确认删除赛道 ${sub}？`)) return; fetch(`/api/pipeline/subdomain/delete?sub=${encodeURIComponent(sub)}&type=${encodeURIComponent(t)}`).then(() => refreshPipe()); }
+        function setSubdomainMode(sub, t, m) { if (checkScanningLock()) return; fetch(`/api/pipeline/subdomain/set_mode?sub=${encodeURIComponent(sub)}&type=${encodeURIComponent(t)}&mode=${encodeURIComponent(m)}`).then(() => refreshPipe()); }
+        function pinSubdomainIP(sub, t) { if (checkScanningLock()) return; const ip = prompt(`指定上位 IP:`); if (ip) fetch(`/api/pipeline/subdomain/pin?sub=${encodeURIComponent(sub)}&type=${encodeURIComponent(t)}&ip=${encodeURIComponent(ip)}`).then(() => refreshPipe()); }
+
+        function savePipeline(enabled) {
+            const s = document.getElementById('cf_zone_select'), opt = s.options[s.selectedIndex];
+            fetch('/api/pipeline/save', {
+                method: 'POST', headers: {'Content-Type':'application/json'},
+                body: JSON.stringify({
+                    enabled, min_speed_mb: 1.0, ports: document.getElementById('testPort').value.trim(),
+                    allowed_colos: document.getElementById('allowedColos').value.trim(),
+                    api_token: document.getElementById('cf_token').value.trim(),
+                    zone_id: opt ? opt.value : '', root_domain: opt ? (opt.getAttribute('data-name')||opt.text) : '',
+                    peak_start_hour: 19, peak_end_hour: 24, subdomains: cachedPipeData&&cachedPipeData.config ? (cachedPipeData.config.subdomains||[]) : [],
+                    r2_mode: cachedPipeData&&cachedPipeData.config ? (cachedPipeData.config.r2_mode||'auto') : 'auto',
+                    r2_manual_colos: cachedPipeData&&cachedPipeData.config ? (cachedPipeData.config.r2_manual_colos||[]) : [],
+                    r2_per_region: 2
+                })
+            }).then(() => refreshPipe());
+        }
+
+        function syncNow() { if (checkScanningLock()) return; fetch('/api/pipeline/sync_now').then(() => log("已触发即刻登基指令...")); }
+        function resetAdmissionBenchmark(type) {
+            if (checkScanningLock()) return;
+            const label = type === 'AAAA' ? 'IPv6' : (type === 'A' ? 'IPv4' : 'IPv4 / IPv6');
+            if (!confirm(`确认只清空 ${label} 赛道当前 R3.5 上位门槛？候选池、R4 与当前域名 IP 不会被删除。注意：同一网络类型的所有子域共享这个赛道门槛。`)) return;
+            fetch('/api/pipeline/benchmark/reset?type=' + encodeURIComponent(type || 'ALL'))
+                .then(r => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); })
+                .then(data => { log('🔄 ' + (data.message || '本轨上位门槛已刷新')); refreshPipe(); })
+                .catch(err => log('❌ 刷新上位门槛失败: ' + (err.message || err)));
+        }
+        function clearLowSpeedBlacklist() { if (checkScanningLock()) return; if (confirm("⚠️ 确认特赦清空熔断黑名单？")) fetch('/api/pipeline/blacklist/clear').then(() => refreshPipe()); }
+        function clearAllData() { if (checkScanningLock() || !confirm('⚠️ 确认一键全部清除海选与水库？')) return; fetch('/api/pipeline/clear_all').then(() => refreshPipe()); }
+        function unfreezeCold(ip) { if (checkScanningLock()) return; fetch('/api/pipeline/cold/unfreeze?ip=' + encodeURIComponent(ip)).then(() => refreshPipe()); }
+        function deleteCold(ip) { if (checkScanningLock()) return; fetch('/api/pipeline/cold/delete?ip=' + encodeURIComponent(ip)).then(() => refreshPipe()); }
+        function clearRetiredAll() { if (checkScanningLock() || !confirm('确认清空退役阁？')) return; fetch('/api/pipeline/retired/clear_all').then(() => refreshPipe()); }
+        function reviveRetired(ip) { if (checkScanningLock()) return; fetch('/api/pipeline/retired/to_pool3?ip=' + encodeURIComponent(ip)).then(() => refreshPipe()); }
+        function deleteRetired(ip) { if (checkScanningLock()) return; fetch('/api/pipeline/retired/delete?ip=' + encodeURIComponent(ip)).then(() => refreshPipe()); }
+
+        function copyToClipboard(text, el) { navigator.clipboard.writeText(text).then(() => { const o = el.textContent; el.textContent = "已复制!"; setTimeout(() => el.textContent=o, 1000); }); }
+        function log(t) { const b = document.getElementById('logBox'); if (b) { b.innerHTML += `<div><span style="opacity:0.6">[${new Date().toLocaleTimeString()}]</span> ${t}</div>`; b.scrollTop = b.scrollHeight; } }
+
+        let hasLoadedConfig = false;
+        function refreshPipe() {
+            fetch('/api/pipeline/get').then(r => {
+                if (!r.ok) throw new Error(`HTTP ${r.status}`);
+                return r.json();
+            }).then(data => {
+                cachedPipeData = data;
+                if (!hasLoadedConfig && data.config) {
+                    document.getElementById('cf_token').value = data.config.api_token || '';
+                    if (data.config.api_token) fetchDomains();
+                    hasLoadedConfig = true;
+                }
+                const bb = document.getElementById('blacklistCount'); if (bb) bb.textContent = data.blacklist_count || 0;
+                const curP = data.current_period || 'daytime';
+                const mt = document.getElementById('headerModeTag'); if (mt) { mt.textContent = curP==='peak'?'🌙 晚高峰自适应模式 (19:00~24:00)':'☀️ 白天严格优选模式'; mt.style.color = curP==='peak'?'#a855f7':'#f59e0b'; }
+                const rt = document.getElementById('retiredTitleBadge'); if (rt) rt.textContent = curP==='peak'?'🌙 晚高峰退役功勋阁':'☀️ 白天历史退役阁';
+                const btn = document.getElementById('btnThronePower'); if (data.config && data.config.enabled) { btn.textContent = "⏸️ 暂停皇位争霸"; btn.style.background = "var(--danger)"; } else { btn.textContent = "👑 开启皇位争夺"; btn.style.background = "var(--accent)"; }
+
+                const v4 = (data.domain_status||[]).find(d => d.type === 'A'), v6 = (data.domain_status||[]).find(d => d.type === 'AAAA');
+                if (v4) updateSeatCard('v4', v4);
+                if (v6) updateSeatCard('v6', v6);
+
+                const tb = document.getElementById('domainDrawerTableBody');
+                if (tb && data.domain_status) {
+                    document.getElementById('extraDomainCount').textContent = data.domain_status.length;
+                    tb.innerHTML = data.domain_status.map((item, idx) => { const rg=getReignText(item.last_up_time); return `<tr><td>#${idx+1}</td><td><span class="throne-domain-name" onclick="copyToClipboard('${item.full_domain}', this)">${item.full_domain}</span></td><td>${item.type === 'AAAA' ? 'IPv6' : 'IPv4'}</td><td>${modeLabel(item.mode)}</td><td><span class="throne-ip-text" onclick="inspectNode('${item.current_ip}'); copyToClipboard('${item.current_ip}', this)">${item.current_ip||'推举中'}</span></td><td>${item.profile?item.profile.isp+' · '+item.profile.colo:'--'}</td><td>${item.current_ip ? `防抖 ${rg.cooldown}<br><span style="color:var(--text-muted);">在线 ${rg.online} · 稳坐 ${rg.stable}</span>` : '⏳ 候补'}</td><td><button class="btn-card-op" onclick="setSubdomainMode('${item.subdomain}','${item.type}','${item.mode==='manual'?'auto':'manual'}')">${modeToggleLabel(item.mode)}</button></td><td><button class="btn-card-op" onclick="inspectNode('${item.current_ip}')">画像</button><button class="btn-card-op" onclick="pinSubdomainIP('${item.subdomain}','${item.type}')">指定</button><button class="btn-card-op" onclick="resetAdmissionBenchmark('${item.type}')">刷本轨门槛</button><button class="btn-card-op" style="color:var(--danger);" onclick="deleteSubdomain('${item.subdomain}','${item.type}')">删</button></td></tr>`; }).join('');
+                }
+
+                handleEmperorCarousel(data);
+                document.getElementById('kpi_pool_count').textContent = `${(data.pool4_v4||[]).length + (data.pool4_v6||[]).length} 席`;
+                const p2Count = Number(data.pool2_count ?? (data.pool2||[]).length);
+                const p2V4 = Number(data.pool2_v4_count ?? 0), p2V6 = Number(data.pool2_v6_count ?? 0);
+                const p2Kpi = document.getElementById('kpi_r2_stock');
+                if (p2Kpi) p2Kpi.textContent = p2Count.toLocaleString();
+                const p2Sub = document.getElementById('kpi_r2_stock_sub');
+                if (p2Sub) p2Sub.textContent = `V4 ${p2V4.toLocaleString()} · V6 ${p2V6.toLocaleString()} · 实时剩余`;
+
+                const cb = document.getElementById('coldPoolList');
+                if (cb) {
+                    const cl = data.cold_pool || []; document.getElementById('coldCountLabel').textContent = cl.length;
+                    cb.innerHTML = cl.length === 0 ? `<div style="text-align:center; padding:16px 0; color:var(--text-muted);">冷宫空无一人</div>` : cl.map(c => `<div style="display:flex; justify-content:space-between; padding:4px 0; border-bottom:1px dashed var(--glass-border);"><div><strong>${c.ip}</strong> (${Math.floor(c.remaining_sec/60)}分)</div><div><button class="btn-card-op" onclick="unfreezeCold('${c.ip}')">特赦</button><button class="btn-card-op" style="color:var(--danger);" onclick="deleteCold('${c.ip}')">处决</button></div></div>`).join('');
+                }
+
+                const rb = document.getElementById('retiredPoolList');
+                if (rb) {
+                    const rList = curP==='peak' ? (data.retired_peak||[]) : (data.retired_daytime||[]);
+                    rb.innerHTML = rList.length === 0 ? `<div style="text-align:center; padding:14px 0; color:var(--text-muted);">暂无退役功勋</div>` : rList.slice(0,50).map(r => `<div style="display:flex; justify-content:space-between; padding:5px 0; border-bottom:1px dashed var(--glass-border); cursor:pointer;" onclick="inspectNode('${r.ip}')"><div><strong>${r.ip}</strong> (${(r.last_speed/8).toFixed(1)}M)</div><div style="display:flex; gap:3px;"><button class="btn-card-op" onclick="event.stopPropagation(); manualPinQuick('${r.ip}','${r.ip.includes(':')?'AAAA':'A'}')">上位</button><button class="btn-card-op" onclick="event.stopPropagation(); inspectNode('${r.ip}')">画像</button><button class="btn-card-op" onclick="event.stopPropagation(); reviveRetired('${r.ip}')">回3轮</button><button class="btn-card-op" style="color:var(--danger);" onclick="event.stopPropagation(); deleteRetired('${r.ip}')">删</button></div></div>`).join('');
+                }
+
+                if (currentFeedMode === 'pool') renderPoolFeedTriChambers();
+                if (currentFeedMode === 'vault') renderVaultChambers();
+            }).catch(err => {
+                // 每秒刷新时不刷屏，只让首次/间隔一段时间的失败可见。
+                const now = Date.now();
+                if (!window._lastPipeFetchError || now - window._lastPipeFetchError > 5000) {
+                    window._lastPipeFetchError = now;
+                    log(`⚠️ 核心状态读取失败: ${err.message || err}`);
+                }
+            });
+        }
+
+
+        function formatDurationMs(ms) {
+            if (!isFinite(ms) || ms < 0) return '--';
+            let sec = Math.floor(ms / 1000);
+            const d = Math.floor(sec / 86400); sec %= 86400;
+            const h = Math.floor(sec / 3600); sec %= 3600;
+            const m = Math.floor(sec / 60); sec %= 60;
+            if (d > 0) return `${d}天${h}时${m}分`;
+            if (h > 0) return `${h}时${m}分${sec}秒`;
+            return `${m}分${sec}秒`;
+        }
+
+        function getReignText(lastUpTime) {
+            if (!lastUpTime || lastUpTime === '0001-01-01T00:00:00Z') {
+                return { cooldown: '--', online: '--', stable: '--', inCooldown: false };
+            }
+            const t = new Date(lastUpTime).getTime();
+            if (!isFinite(t)) return { cooldown: '--', online: '--', stable: '--', inCooldown: false };
+            const elapsed = Math.max(0, Date.now() - t);
+            const cooldownLeft = Math.max(0, 120000 - elapsed);
+            return {
+                cooldown: cooldownLeft > 0 ? formatDurationMs(cooldownLeft) : '已解除',
+                online: formatDurationMs(elapsed),
+                stable: formatDurationMs(elapsed),
+                inCooldown: cooldownLeft > 0
+            };
+        }
+
+        function modeLabel(mode) {
+            return mode === 'manual' ? '🖐 手动' : '🤖 自动';
+        }
+
+        function modeToggleLabel(mode) {
+            return mode === 'manual' ? '切到自动' : '切到手动';
+        }
+
+        function updateSeatCard(prefix, d) {
+            const mode = d.mode === 'manual' ? 'manual' : 'auto';
+            const reign = getReignText(d.last_up_time);
+            document.getElementById(prefix + '_card_domain').textContent = d.full_domain || (prefix === 'v4' ? '未绑定 IPv4 赛道' : '未绑定 IPv6 赛道');
+            document.getElementById(prefix + '_card_ip').textContent = d.current_ip || (prefix==='v4'?'--.---.---.---':'--::--');
+            document.getElementById(prefix + '_card_isp').textContent = d.profile ? d.profile.isp : '骨干网络';
+            document.getElementById(prefix + '_card_colo').textContent = d.profile ? d.profile.colo : 'CF';
+            document.getElementById(prefix + '_card_spd').textContent = d.current_ip ? `${(d.current_speed/8).toFixed(2)} MB/s` : '-- MB/s';
+            document.getElementById(prefix + '_card_mode').textContent = `模式: ${modeLabel(mode)}`;
+            document.getElementById(prefix + '_card_time').textContent = d.current_ip ? `防抖: ${reign.cooldown} · 在线: ${reign.online} · 稳坐: ${reign.stable}` : '防抖: -- · 在线: -- · 稳坐: --';
+            const badge = document.getElementById(prefix + '_cooldown_badge');
+            if (badge) {
+                if (!d.current_ip) badge.textContent = '⏳ 等待上位';
+                else if (reign.inCooldown) badge.textContent = `🟠 防抖 ${reign.cooldown}`;
+                else badge.textContent = mode === 'manual' ? '🖐 手动稳坐' : '🟢 自动稳坐';
+            }
+            const btn = document.getElementById(prefix + '_btn_mode');
+            if (btn) btn.textContent = modeToggleLabel(mode);
+            document.getElementById(prefix + '_btn_profile').onclick = () => { if (d.current_ip) inspectNode(d.current_ip); };
+            document.getElementById(prefix + '_btn_pin').onclick = () => pinSubdomainIP(d.subdomain, d.type);
+            document.getElementById(prefix + '_btn_mode').onclick = () => setSubdomainMode(d.subdomain, d.type, mode === 'manual' ? 'auto' : 'manual');
+            document.getElementById(prefix + '_btn_del').onclick = () => deleteSubdomain(d.subdomain, d.type);
+        }
+
+        function handleEmperorCarousel(data) {
+            const tip = document.getElementById('cardTimerTip');
+            if (inspectedIP) {
+                const el = Date.now() - lastManualInspectTime;
+                if (el >= MANUAL_LOCK_MS) { inspectedIP = null; } else {
+                    const rem = Math.ceil((MANUAL_LOCK_MS - el) / 1000);
+                    if (tip) tip.textContent = `[已锁定检视 · ${Math.floor(rem/60)}分${rem%60}秒后恢复轮播]`;
+                    renderProfileCard(inspectedIP, false);
+                    return;
+                }
+            }
+            const active = (data.domain_status||[]).filter(d => d.current_ip);
+            if (active.length === 0) return;
+            if (tip) tip.textContent = `[多域轮播中 (15秒/域) · 点击节点定格5分钟]`;
+            domainCarouselTick++;
+            if (domainCarouselTick % 15 === 0 || document.getElementById('p_ip').textContent.trim() === '--') {
+                domainCarouselIdx = (domainCarouselIdx + 1) % active.length;
+                const cur = active[domainCarouselIdx];
+                renderProfileCard(cur.current_ip, true, cur.full_domain, cur.type, cur.mode, cur.last_up_time);
+            }
+        }
+
+        /* 3D 动态波纹与流体星芒双引擎 (高可靠紧凑闭包，杜绝截断) */
+        const mCan = document.getElementById('fluid-mesh-canvas'), mCtx = mCan.getContext('2d');
+        const sCan = document.getElementById('sparkle-trail-canvas'), sCtx = sCan.getContext('2d');
+        let W, H, mouse = { x: -1000, y: -1000, speed: 0 }, smMouse = { x: -1000, y: -1000 }, gridTime = 0;
+        const sparkles = [];
+
+        function resize() {
+            W = mCan.width = sCan.width = window.innerWidth;
+            H = mCan.height = sCan.height = window.innerHeight;
+            if (mouse.x < 0) { mouse.x = smMouse.x = W/2; mouse.y = smMouse.y = H/2; }
+        }
+        window.addEventListener('resize', resize);
+        resize();
+
+        window.addEventListener('mousemove', (e) => {
+            if (isTaskActive) return;
+            const dx = e.clientX - mouse.x, dy = e.clientY - mouse.y;
+            mouse.speed = Math.sqrt(dx*dx + dy*dy); mouse.x = e.clientX; mouse.y = e.clientY;
+            for (let i = 0; i < Math.min(3, Math.floor(mouse.speed/5)+1); i++) {
+                sparkles.push({ x: mouse.x+(Math.random()-0.5)*12, y: mouse.y+(Math.random()-0.5)*12, vx: (Math.random()-0.5)*1.5, vy: (Math.random()-0.5)*1.5-0.5, size: Math.random()*3+2, alpha: 1, decay: 0.035 });
+            }
+        });
+
+        function renderSparkles() {
+            sCtx.clearRect(0,0,W,H);
+            if (!isTaskActive) {
+                const rgb = getComputedStyle(document.documentElement).getPropertyValue('--trail-color').trim() || '255,42,112';
+                for (let i = sparkles.length - 1; i >= 0; i--) {
+                    const s = sparkles[i]; s.x += s.vx; s.y += s.vy; s.alpha -= s.decay; s.size *= 0.98;
+                    if (s.alpha <= 0) { sparkles.splice(i, 1); continue; }
+                    sCtx.fillStyle = `rgba(${rgb}, ${s.alpha})`; sCtx.beginPath(); sCtx.arc(s.x, s.y, s.size, 0, Math.PI*2); sCtx.fill();
+                }
+            }
+            requestAnimationFrame(renderSparkles);
+        }
+        renderSparkles();
+
+        const COLS = 22, ROWS = 14;
+        function renderMesh() {
+            mCtx.clearRect(0, 0, W, H);
+            if (!isTaskActive) {
+                gridTime += 0.015;
+                smMouse.x += (mouse.x - smMouse.x) * 0.05; smMouse.y += (mouse.y - smMouse.y) * 0.05;
+                const lineCol = getComputedStyle(document.documentElement).getPropertyValue('--mesh-line').trim() || 'rgba(255,42,112,0.12)';
+                const nodeCol = getComputedStyle(document.documentElement).getPropertyValue('--mesh-node').trim() || 'rgba(255,42,112,0.30)';
+                const pts = [], cW = W / (COLS - 1), cH = H / (ROWS - 1);
+                for (let r = 0; r < ROWS; r++) {
+                    pts[r] = [];
+                    for (let c = 0; c < COLS; c++) {
+                        const bx = c * cW, by = r * cH, d = Math.sqrt((bx-smMouse.x)**2 + (by-smMouse.y)**2);
+                        const infl = d < 280 ? Math.sin((1 - d/280) * Math.PI) * 36 : 0;
+                        const z = Math.sin(c*0.35 + gridTime) * 14 + Math.cos(r*0.25 - gridTime) * 10 + infl;
+                        const sc = 550 / (550 + z);
+                        pts[r][c] = { x: (bx - W/2) * sc + W/2, y: (by - H/2) * sc + H/2 };
+                    }
+                }
+                mCtx.strokeStyle = lineCol; mCtx.lineWidth = 1;
+                for (let r = 0; r < ROWS; r++) {
+                    mCtx.beginPath(); for (let c = 0; c < COLS; c++) { if (c===0) mCtx.moveTo(pts[r][c].x, pts[r][c].y); else mCtx.lineTo(pts[r][c].x, pts[r][c].y); } mCtx.stroke();
+                }
+                for (let c = 0; c < COLS; c++) {
+                    mCtx.beginPath(); for (let r = 0; r < ROWS; r++) { if (r===0) mCtx.moveTo(pts[r][c].x, pts[r][c].y); else mCtx.lineTo(pts[r][c].x, pts[r][c].y); } mCtx.stroke();
+                }
+                mCtx.fillStyle = nodeCol;
+                for (let r = 0; r < ROWS; r += 2) {
+                    for (let c = 0; c < COLS; c += 2) { mCtx.beginPath(); mCtx.arc(pts[r][c].x, pts[r][c].y, 2, 0, Math.PI*2); mCtx.fill(); }
+                }
+            }
+            requestAnimationFrame(renderMesh);
+        }
+        renderMesh();
+
+        window.addEventListener('DOMContentLoaded', () => {
+            connect(); syncPortBadgeStyles(); refreshPipe(); setInterval(refreshPipe, 1000);
+        });
+    </script>
+</body>
+</html>
