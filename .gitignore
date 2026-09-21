@@ -1,0 +1,25 @@
+dist/
+*.exe
+*.log
+*.tmp
+
+# Runtime state and caches
+yundongip-*.json
+scan_rotation.json
+ips-v4.txt
+ips-v6.txt
+locations.json
+blacklist_cache.json
+retired_daytime.json
+retired_peak.json
+sealed_daytime.json
+sealed_peak.json
+domains_cache.json
+profiles_cache.json
+pipeline_config.json
+
+# Local editor / OS noise
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
