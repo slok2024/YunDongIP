@@ -67,14 +67,20 @@ Windows 用户直接运行 Release `.exe` 即可，不需要安装 Go。双击�
 ## 构建
 
 set CGO_ENABLED=0
+
 set GOOS=windows
+
 set GOARCH=amd64
+
 go build -trimpath -ldflags="-s -w" -o dist/YunDongIP-windows-amd64.exe ./cmd/yundongip
 
 
 set CGO_ENABLED=0
+
 set GOOS=windows
+
 set GOARCH=386
+
 go build -trimpath -ldflags="-s -w" -o dist/YunDongIP-windows-386.exe ./cmd/yundongip
 
 
