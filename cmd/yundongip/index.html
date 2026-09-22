@@ -1156,7 +1156,11 @@
         function log(t) { const b = document.getElementById('logBox'); if (b) { b.innerHTML += `<div><span style="opacity:0.6">[${new Date().toLocaleTimeString()}]</span> ${t}</div>`; b.scrollTop = b.scrollHeight; } }
 
         let hasLoadedConfig = false;
+        let pipeRefreshInFlight = false;
         function refreshPipe() {
+            // 防止上一轮状态请求尚未完成时再次发起请求，避免网络抖动/后端繁忙时请求堆积导致网页卡顿。
+            if (pipeRefreshInFlight) return;
+            pipeRefreshInFlight = true;
             fetch('/api/pipeline/get').then(r => {
                 if (!r.ok) throw new Error(`HTTP ${r.status}`);
                 return r.json();
@@ -1207,12 +1211,14 @@
                 if (currentFeedMode === 'pool') renderPoolFeedTriChambers();
                 if (currentFeedMode === 'vault') renderVaultChambers();
             }).catch(err => {
-                // 每秒刷新时不刷屏，只让首次/间隔一段时间的失败可见。
+                // 定时状态刷新失败不刷屏，只让首次/间隔一段时间的失败可见。
                 const now = Date.now();
                 if (!window._lastPipeFetchError || now - window._lastPipeFetchError > 5000) {
                     window._lastPipeFetchError = now;
                     log(`⚠️ 核心状态读取失败: ${err.message || err}`);
                 }
+            }).finally(() => {
+                pipeRefreshInFlight = false;
             });
         }
 
@@ -1371,7 +1377,7 @@
         renderMesh();
 
         window.addEventListener('DOMContentLoaded', () => {
-            connect(); syncPortBadgeStyles(); refreshPipe(); setInterval(refreshPipe, 1000);
+            connect(); syncPortBadgeStyles(); refreshPipe(); setInterval(refreshPipe, 2000);
         });
     </script>
 </body>
