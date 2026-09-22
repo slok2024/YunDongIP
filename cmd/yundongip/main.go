@@ -346,8 +346,8 @@ var (
 	logLock      sync.Mutex
 	activeWSConn *wsConn
 
-	localDetectedCity = "杭州"
-	localDetectedISP  = "宽带接入"
+	localDetectedCity = "本地网络"
+	localDetectedISP  = "自动探测中"
 
 	lowSpeedBlacklist = make(map[string]time.Time)
 	blacklistLock     sync.RWMutex
@@ -431,8 +431,8 @@ func detectLocalOutboundGeo() {
 			return
 		}
 	}
-	localDetectedCity = "杭州"
-	localDetectedISP = "核心骨干宽带"
+	localDetectedCity = "本地网络"
+	localDetectedISP = "未知运营商"
 }
 
 func addLog(format string, a ...interface{}) {
@@ -3713,6 +3713,13 @@ probeLoop:
 			scanResults = append(scanResults, candidate)
 			scanMutex.Unlock()
 
+			// 指定地区扫描同样必须进入 R2 候选集合；此前这里漏记会导致 R2 扫描结束后长期空转。
+			pipeLock.Lock()
+			if !isBlacklisted(t.IP) {
+				r2Eligible[t.IP] = struct{}{}
+			}
+			pipeLock.Unlock()
+
 			resultBatchMu.Lock()
 			resultBatch = append(resultBatch, candidate)
 			needFlush := len(resultBatch) >= scanBatchSize
@@ -3769,7 +3776,21 @@ probeLoop:
 		return
 	}
 	sort.Slice(scanResults, func(i, j int) bool { return scanResultLess(scanResults[i], scanResults[j]) })
+	snapshot := append([]ScanResult(nil), scanResults...)
 	scanMutex.Unlock()
+
+	// 收尾再统一校正一次 R2 候选集合，确保所有已完成 CF Trace 分类的节点都能被 R2 接住。
+	pipeLock.Lock()
+	for _, res := range snapshot {
+		if res.DataCenter == "" || res.DataCenter == "Trace中" || isBlacklisted(res.IP) {
+			continue
+		}
+		if !isColoMatched(res.DataCenter, colosFilter) {
+			continue
+		}
+		r2Eligible[res.IP] = struct{}{}
+	}
+	pipeLock.Unlock()
 
 	completedNormally = true
 	pipeLock.Lock()
