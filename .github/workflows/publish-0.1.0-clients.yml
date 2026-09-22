@@ -91,8 +91,44 @@ jobs:
           name: release-sources
           path: dist/*.zip
 
+
+  desktop:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23'
+      - name: Build Windows Easy packages and Linux CLI
+        shell: bash
+        run: |
+          mkdir -p dist/win-x64 dist/win-arm64 dist
+          CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build -trimpath -ldflags="-s -w -X main.buildVersion=0.1.0 -X main.buildCommit=${GITHUB_SHA}" -o dist/win-x64/YunDongIP.exe ./cmd/yundongip
+          CGO_ENABLED=0 GOOS=windows GOARCH=arm64 go build -trimpath -ldflags="-s -w -X main.buildVersion=0.1.0 -X main.buildCommit=${GITHUB_SHA}" -o dist/win-arm64/YunDongIP.exe ./cmd/yundongip
+          printf "YunDongIP 0.1.0 Windows x64 Easy\n\n1. 解压此 ZIP。\n2. 双击 YunDongIP.exe。\n3. 程序会自动打开浏览器进入完整控制台。\n\nEasy 仅代表启动方式简单，功能与完整核心一致。\n" > dist/win-x64/双击使用说明.txt
+          printf "YunDongIP 0.1.0 Windows ARM64 Easy\n\n1. 解压此 ZIP。\n2. 双击 YunDongIP.exe。\n3. 程序会自动打开浏览器进入完整控制台。\n\nEasy 仅代表启动方式简单，功能与完整核心一致。\n" > dist/win-arm64/双击使用说明.txt
+          (cd dist/win-x64 && zip -r ../YunDongIP-0.1.0-Windows-x64-Easy.zip .)
+          (cd dist/win-arm64 && zip -r ../YunDongIP-0.1.0-Windows-ARM64-Easy.zip .)
+          CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -trimpath -ldflags="-s -w -X main.buildVersion=0.1.0 -X main.buildCommit=${GITHUB_SHA}" -o dist/YunDongIP-0.1.0-Linux-x64-CLI ./cmd/yundongip
+          CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -trimpath -ldflags="-s -w -X main.buildVersion=0.1.0 -X main.buildCommit=${GITHUB_SHA}" -o dist/YunDongIP-0.1.0-Linux-ARM64-CLI ./cmd/yundongip
+      - uses: actions/attest@v4
+        with:
+          subject-path: |
+            dist/YunDongIP-0.1.0-Windows-x64-Easy.zip
+            dist/YunDongIP-0.1.0-Windows-ARM64-Easy.zip
+            dist/YunDongIP-0.1.0-Linux-x64-CLI
+            dist/YunDongIP-0.1.0-Linux-ARM64-CLI
+      - uses: actions/upload-artifact@v4
+        with:
+          name: release-desktop
+          path: |
+            dist/YunDongIP-0.1.0-Windows-x64-Easy.zip
+            dist/YunDongIP-0.1.0-Windows-ARM64-Easy.zip
+            dist/YunDongIP-0.1.0-Linux-x64-CLI
+            dist/YunDongIP-0.1.0-Linux-ARM64-CLI
+
   publish:
-    needs: [macos, android, sources]
+    needs: [macos, android, sources, desktop]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/download-artifact@v4
@@ -104,10 +140,10 @@ jobs:
         shell: bash
         run: |
           cd dist
-          sha256sum YunDongIP-0.1.0-macOS-universal.zip YunDongIP-0.1.0-android-arm64.apk YunDongIP-0.1.0-pure-source-all-clients.zip YunDongIP-0.1.0-protected-source-all-clients.zip > SHA256SUMS-clients.txt
+          sha256sum YunDongIP-0.1.0-Windows-x64-Easy.zip YunDongIP-0.1.0-Windows-ARM64-Easy.zip YunDongIP-0.1.0-macOS-universal.zip YunDongIP-0.1.0-android-arm64.apk YunDongIP-0.1.0-Linux-x64-CLI YunDongIP-0.1.0-Linux-ARM64-CLI YunDongIP-0.1.0-pure-source-all-clients.zip YunDongIP-0.1.0-protected-source-all-clients.zip > SHA256SUMS-clients.txt
       - name: Upload to existing 0.1.0 Release
         env:
           GH_TOKEN: ${{ github.token }}
         shell: bash
         run: |
-          gh release upload 0.1.0             dist/YunDongIP-0.1.0-macOS-universal.zip             dist/YunDongIP-0.1.0-android-arm64.apk             dist/YunDongIP-0.1.0-pure-source-all-clients.zip             dist/YunDongIP-0.1.0-protected-source-all-clients.zip             dist/SHA256SUMS-clients.txt             --clobber --repo zeruiouo-blip/YunDongIP
+          gh release upload 0.1.0             dist/YunDongIP-0.1.0-Windows-x64-Easy.zip             dist/YunDongIP-0.1.0-Windows-ARM64-Easy.zip             dist/YunDongIP-0.1.0-macOS-universal.zip             dist/YunDongIP-0.1.0-android-arm64.apk             dist/YunDongIP-0.1.0-Linux-x64-CLI             dist/YunDongIP-0.1.0-Linux-ARM64-CLI             dist/YunDongIP-0.1.0-pure-source-all-clients.zip             dist/YunDongIP-0.1.0-protected-source-all-clients.zip             dist/SHA256SUMS-clients.txt             --clobber --repo zeruiouo-blip/YunDongIP
