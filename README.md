@@ -66,13 +66,17 @@ Windows 用户直接运行 Release `.exe` 即可，不需要安装 Go。双击�
 
 ## 构建
 
-PowerShell：
+set CGO_ENABLED=0
+set GOOS=windows
+set GOARCH=amd64
+go build -trimpath -ldflags="-s -w" -o dist/YunDongIP-windows-amd64.exe ./cmd/yundongip
 
-`./build.ps1`
 
-Linux/macOS：
+set CGO_ENABLED=0
+set GOOS=windows
+set GOARCH=386
+go build -trimpath -ldflags="-s -w" -o dist/YunDongIP-windows-386.exe ./cmd/yundongip
 
-`bash ./build.sh`
 
 无图形界面的服务器运行时可使用：`-open-browser=false`。
 
