@@ -217,8 +217,7 @@
             <div class="kpi-block"><div class="kpi-block-label">🧪 R2 总积蓄</div><div class="kpi-block-val" id="kpi_r2_stock" style="color:var(--warning);">0</div><div class="kpi-block-sub" id="kpi_r2_stock_sub">实时剩余候测节点</div></div>
             <div class="kpi-block" style="text-align:right;"><div class="kpi-block-label">待命皇位储备</div><div class="kpi-block-val" id="kpi_pool_count">0 席</div><div class="kpi-block-sub">R4 待命双仓 (100席/轨)</div></div>
             <div class="kpi-actions">
-                <button class="btn-card-op" onclick="resetAdmissionBenchmark('A')" title="只刷新 IPv4 赛道的 R3.5 上位门槛；刷新后立即解除该赛道当前门槛限制">🔄 IPv4 门槛</button>
-                <button class="btn-card-op" onclick="resetAdmissionBenchmark('AAAA')" title="只刷新 IPv6 赛道的 R3.5 上位门槛；刷新后立即解除该赛道当前门槛限制">🔄 IPv6 门槛</button>
+                <button class="btn-card-op" onclick="resetAdmissionBenchmark('ALL')" title="同时重置 IPv4 / IPv6 两条赛道的 R3.5 上位门槛">🔄 IPv4/IPv6上位门槛重置</button>
                 <button class="btn-card-op" onclick="syncNow()" style="background:var(--accent); color:#fff; border-color:var(--accent);">⚡ 即刻登基</button>
             </div>
         </div>
@@ -272,7 +271,7 @@
                 <div>建档时间: <span id="p_born">--</span></div>
             </div>
             <div class="trace-hops-rack" id="p_path_steps">
-                <span class="hop-pill hop-0">🏠 杭州 (本地宽带)</span>➔<span class="hop-pill hop-1">🌐 省级骨干核心网</span>➔<span class="hop-pill hop-2">🚢 国际出海关口局</span>➔<span class="hop-pill hop-3">🌊 亚太环形海底光缆</span>➔<span class="hop-pill hop-4">🏁 Cloudflare 香港机房 (HKG)</span>
+                <span class="hop-pill hop-0">🏠 本地网络</span>➔<span class="hop-pill hop-1">🌐 网络路径识别中</span>➔<span class="hop-pill hop-2">🚢 国际出海路径</span>➔<span class="hop-pill hop-3">🌊 跨境骨干链路</span>➔<span class="hop-pill hop-4">🏁 Cloudflare 边缘机房</span>
             </div>
         </div>
 
@@ -1137,7 +1136,8 @@
         function syncNow() { if (checkScanningLock()) return; fetch('/api/pipeline/sync_now').then(() => log("已触发即刻登基指令...")); }
         function resetAdmissionBenchmark(type) {
             if (checkScanningLock()) return;
-            const label = type === 'AAAA' ? 'IPv6' : (type === 'A' ? 'IPv4' : 'IPv4 / IPv6');
+            type = 'ALL';
+            const label = 'IPv4 / IPv6';
             if (!confirm(`确认只清空 ${label} 赛道当前 R3.5 上位门槛？候选池、R4 与当前域名 IP 不会被删除。注意：同一网络类型的所有子域共享这个赛道门槛。`)) return;
             fetch('/api/pipeline/benchmark/reset?type=' + encodeURIComponent(type || 'ALL'))
                 .then(r => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); })
