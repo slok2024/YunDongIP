@@ -1,3 +1,6 @@
+<img width="1920" height="941" alt="image" src="https://github.com/user-attachments/assets/a18144e0-17de-47e2-8346-ec42cc445b77" />
+
+
 # YunDongIP 0.1.0
 
 YunDongIP 0.1.0 是一个独立开发的新型 Cloudflare Anycast 动态优选与自愈工具。
