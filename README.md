@@ -39,6 +39,23 @@ YunDongIP 以持续动态优选、自适应节点竞争和长期自愈为核心�
 
 `tools/verify_baseline.py`：发布前自动核验脚本。
 
+## 客户端支持
+
+所有客户端都运行完整 YunDongIP 功能，核心扫描、R2 / R3 / R3.5 / R4、测速、域名自动更新、Web 控制等机制保持一致；不同客户端只负责适配各平台的启动与运行方式，不是功能精简版。
+
+| 平台 | 适合用户 | 启动方式 | 独立运行 |
+| --- | --- | --- | --- |
+| Windows amd64 / arm64 | 新手与普通用户 | 解压后双击程序 | 是 |
+| macOS Universal | Apple Silicon / Intel Mac | 双击 YunDongIP.app | 是 |
+| Android arm64 | Android 手机用户 | 安装 APK 后点图标 | 是，不依赖电脑 |
+| Linux amd64 / arm64 | 服务器与老司机 | 命令行运行 | 是 |
+
+Android 客户端将完整 Go 后端内置到 APK，在手机本机运行，并使用前台服务维持自动优选任务；WebView 只是本机完整控制台界面，不需要连接电脑上的 YunDongIP。
+
+macOS 客户端为可双击的 `YunDongIP.app`，内置 Intel + Apple Silicon Universal Binary。运行数据保存在 `~/Library/Application Support/YunDongIP`。由于当前公开测试版没有 Apple Developer ID 公证，首次从互联网下载后若被 Gatekeeper 提示，可在 Finder 中右键应用并选择“打开”确认一次。
+
+Release 同时提供纯源码版与保护增强源码版；两者核心功能源码一致，保护增强版额外保留 GPL、版权、PROVENANCE、SECURITY、构建脚本与 GitHub Actions 构建来源信息。
+
 ## Windows
 
 Windows 用户直接运行 Release `.exe` 即可，不需要安装 Go。双击程序后，默认仅监听本机 `127.0.0.1:13335`，并自动打开浏览器进入 YunDongIP。
