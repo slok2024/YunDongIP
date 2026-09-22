@@ -3,15 +3,10 @@
 
 # YunDongIP 0.1.0
 
-YunDongIP 0.1.0 是一个独立开发的新型 Cloudflare Anycast 动态优选与自愈工具。
+YunDongIP 是一个独立开发的新型 Cloudflare Anycast 动态优选与自愈工具。
 
 本项目的核心源码、扫描车道、动态节点流水线、测速调度以及 WebSocket 服务端均由本项目自行实现，发布源码仅使用 Go 标准库完成网络、HTTP、WebSocket 握手与帧处理等基础能力。
 
-## 官方来源与版本验证
-
-官方仓库：`https://github.com/zeruiouo-blip/YunDongIP`
-
-源码与程序内置可见项目标识：`YDI-PROVENANCE-0.1.0-6B8A4C2E`。官方 Release 会提供 SHA-256 校验值；CI 构建还可使用 GitHub 的签名构建来源证明。
 
 ## 核心机制
 
@@ -76,6 +71,7 @@ set GOOS=windows
 set GOARCH=amd64
 
 go build -trimpath -ldflags="-s -w" -o dist/YunDongIP-windows-amd64.exe ./cmd/yundongip
+
 
 
 set CGO_ENABLED=0
